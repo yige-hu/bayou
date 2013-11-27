@@ -1,6 +1,3 @@
-package src;
-
-
 import java.util.*;
 
  public class Queue<T> {

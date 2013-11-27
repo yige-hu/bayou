@@ -1,25 +1,24 @@
 
 public abstract class Process extends Thread {
-	ProcessId me;
-	Queue<PaxosMessage> inbox = new Queue<PaxosMessage>();
+	int me;
+	Queue<Message> inbox = new Queue<Message>();
 	Env env;
 
 	abstract void body();
 
-	public void run(){
-		body();
-		env.removeProc(me);
-	}
-
-	PaxosMessage getNextMessage(){
+	Message getNextMessage(){
 		return inbox.bdequeue();
 	}
 
-	void sendMessage(ProcessId dst, PaxosMessage msg){
-		env.sendMessage(dst, msg);
+	void sendServerMessage(int dst, Message msg){
+		env.sendServerMessage(dst, msg);
+	}
+	
+	void sendClientMessage(int dst, Message msg){
+		env.sendClientMessage(dst, msg);
 	}
 
-	void deliver(PaxosMessage msg){
+	void deliver(Message msg){
 		inbox.enqueue(msg);
 	}
 }
