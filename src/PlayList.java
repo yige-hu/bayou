@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class PlayList {
 	
-	private Map<String, Song> songs = new HashMap<String, Song>();
+	Map<String, Song> songs = new HashMap<String, Song>();
 	
 	public void addSong(String songName, URL url) {
 		Song s = new Song(songName, url);

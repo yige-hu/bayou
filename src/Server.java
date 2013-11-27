@@ -62,22 +62,25 @@ public class Server extends Process {
 		// TODO Auto-generated method stub
 		
 	}
-	
-	private void isolate() {
-		for (int serverId : connected_servers) {
-			
+
+	public void disconnect(int j) {
+		connected_servers.add(j);		
+	}
+
+	public void connect(int j) {
+		connected_servers.remove(j);
+	}
+
+	public void printLog() {
+		System.out.println("Log: server " + me + "\n");
+		System.out.println("commited:\n");
+		for (Song s : commited.songs.values()) {
+			System.out.println("\t" + s + "\n");
 		}
-	}
-	
-	private void reconnect() {
 		
-	}
-	
-	private void breakConnection(int i, int j) {
-		
-	}
-	
-	private void recoverConnection() {
-		
+		System.out.println("tentative:\n");
+		for (Song s : tentative.songs.values()) {
+			System.out.println("\t" + s + "\n");
+		}
 	}
 }

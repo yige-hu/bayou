@@ -16,4 +16,8 @@ public class Song {
 		this.url = url;
 	}
 	
+	public String toString() {
+		return songName + " " + url;
+	}
+	
 }

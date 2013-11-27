@@ -31,8 +31,59 @@ public class CmdReader extends Thread {
 			
 			try {
 				StringTokenizer t = new StringTokenizer(command, " ");
-				int sendClientNum = Integer.parseInt(t.nextToken());
+				
 				String type = t.nextToken();
+				
+				if (type.equals("pause")) {
+					Env.pause = true;
+				}
+				
+				if (type.equals("continue")) {
+					Env.pause = false;
+				}
+				
+				if (type.equals("printLog")) {
+					if (t.hasMoreTokens()) {
+						int server = Integer.parseInt(t.nextToken());
+						env.printLog(server);
+					} else {
+						env.printLog();
+					}
+				}
+				
+				if (type.equals("isolate")) {
+					int server = Integer.parseInt(t.nextToken());
+					env.isolate(server);
+				}
+				
+				if (type.equals("reconnect")) {
+					int server = Integer.parseInt(t.nextToken());
+					env.reconnect(server);
+				}
+				
+				if (type.equals("breakConnection")) {
+					int server1 = Integer.parseInt(t.nextToken());
+					int server2 = Integer.parseInt(t.nextToken());
+					env.breakConnection(server1, server2);
+				}
+				
+				if (type.equals("recoverConnection")) {
+					int server1 = Integer.parseInt(t.nextToken());
+					int server2 = Integer.parseInt(t.nextToken());
+					env.recoverConnection(server1, server2);
+				}
+				
+				if (type.equals("join")) {
+					int server = Integer.parseInt(t.nextToken());
+					env.join(server);
+				}
+				
+				if (type.equals("leave")) {
+					int server = Integer.parseInt(t.nextToken());
+					env.leave(server);
+				}
+				
+				int sendClientNum = Integer.parseInt(t.nextToken());
 				
 //				if (type.equals("addBankClient")) {
 //					

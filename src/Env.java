@@ -45,10 +45,15 @@ public class Env {
 	}
 
 	void run(String[] args){
-		ProcessId[] serverIds= new ProcessId[nInitServers];
 
 		for (int i = 0; i < nInitServers; i++) {
-			Server acc = new Server(this, i);
+			Server s = new Server(this, i);
+		}
+		
+		for (int i = 0; i < nInitServers; i++) {
+			for (int j = i; j < nInitServers; j++) {
+				recoverConnection(i, j);
+			}
 		}
 		
 		CmdReader reader = new CmdReader(this);
@@ -91,5 +96,52 @@ public class Env {
 
 	public static void main(String[] args){
 		new Env().run(args);
+	}
+	
+	void isolate(int i) {
+		for (int j : servers.keySet()) {
+			breakConnection(i, j);
+		}
+	}
+	
+	void reconnect(int i) {
+		for (int j : servers.keySet()) {
+			recoverConnection(i, j);
+		}
+	}
+	
+	void breakConnection(int i, int j) {
+		Server s1 = servers.get(i);
+		Server s2 = servers.get(j);
+		s1.disconnect(j);
+		s2.disconnect(i);
+	}
+	
+	void recoverConnection(int i, int j) {
+		Server s1 = servers.get(i);
+		Server s2 = servers.get(j);
+		s1.connect(j);
+		s2.connect(i);
+	}
+
+	public void printLog() {
+		for (Server s : servers.values()) {
+			s.printLog();
+		}
+	}
+
+	public void printLog(int server) {
+		Server s = servers.get(servers);
+		s.printLog();
+	}
+
+	public void join(int server) {
+		Server s = new Server(this, server);
+		// TODO new server join
+	}
+
+	public void leave(int server) {
+		// TODO server retirement
+		
 	}
 }
