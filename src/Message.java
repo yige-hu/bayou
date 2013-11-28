@@ -20,6 +20,13 @@ class ClientReadOnlyMessage extends Message {
 	}
 }
 
+class ClientWriteOnlyMessage extends Message {
+	Command command;
+	public ClientWriteOnlyMessage(int src, Command command){
+		this.src = src; this.command = command;
+	}
+}
+
 class CommitNotification extends Message {
 	Command command;
 	public CommitNotification(int src, Command command){

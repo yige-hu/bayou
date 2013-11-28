@@ -56,6 +56,24 @@ public class Server extends Process {
 				}
 			}
 			
+			else if (msg instanceof ClientWriteOnlyMessage) {
+				
+				ClientWriteOnlyMessage m = (ClientWriteOnlyMessage) msg;
+				m.command.server = me;
+				m.command.accept_stamp = (TS++);
+				tentative.add(m.command);
+				antiEntropy();
+				
+				// primary server write stable
+				if (me == 0) {
+					m.command.CSN = CSN++;
+					commitWriteOnly(m.command);
+					tentative.remove(m.command);
+					committed.add(m.command);
+					antiEntropy();
+				}
+			}
+			
 			else if  (msg instanceof ClientReadOnlyMessage) {
 				ClientReadOnlyMessage m = (ClientReadOnlyMessage) msg;
 				commitReadOnly(m.command);
@@ -106,9 +124,18 @@ public class Server extends Process {
 		
 	}
 
+	private void commitWriteOnly(Command command) {
+		try {
+			if (command.type.equals("add")) {
+				playList.addSong(command.songName, command.url);
+			}
+		} catch (Exception e) {
+			System.out.println("Exception when committing write: "
+					+ e.toString());
+		}
+	}
+
 	private void commitReadOnly(Command command) {
-		
-		
 		try {
 			if (command.type.equals("get")) {
 				String songInfo = playList.getSongInfo(command.songName);
@@ -123,11 +150,7 @@ public class Server extends Process {
 
 	private void commitWrite(Command command) {
 		try {
-			if (command.type.equals("add")) {
-				playList.addSong(command.songName, command.url);
-			}
-
-			else if (command.type.equals("delete")) {
+			if (command.type.equals("delete")) {
 				playList.deleteSong(command.songName);
 			}
 

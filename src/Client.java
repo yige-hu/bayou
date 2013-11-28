@@ -53,9 +53,12 @@ public class Client extends Process {
 		sendServerMessage(server, new ClientReadOnlyMessage(me, cmd));
 	}
 
+	public void writeOnlyRequest(Command cmd) {
+		sendServerMessage(server, new ClientWriteOnlyMessage(me, cmd));
+	}
+	
 	public void printLog() {
 		System.out.println("Status: client" + me + " connected with server" + server);
 	}
-
 
 }

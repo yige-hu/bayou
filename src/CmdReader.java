@@ -109,7 +109,7 @@ public class CmdReader extends Thread {
 						String url = t.nextToken();
 						Client c = env.clients.get(client);
 						Command cmd = new Command(client, c.num_cmd++, cmdType, songName, new URL(url));
-						c.writeRequest(cmd);
+						c.writeOnlyRequest(cmd);
 					}
 					
 					else if (cmdType.equals("delete")) {
