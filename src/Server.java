@@ -58,8 +58,7 @@ public class Server extends Process {
 			
 			else if  (msg instanceof ClientReadOnlyMessage) {
 				ClientReadOnlyMessage m = (ClientReadOnlyMessage) msg;
-				String songInfo = playList.getSongInfo(m.command.songName);
-				System.out.println("Get response: " + songInfo);
+				commitReadOnly(m.command);
 			}
 			
 			else if  (msg instanceof CommitNotification) {
@@ -73,25 +72,19 @@ public class Server extends Process {
 			else if  (msg instanceof WriteNotification) {
 				WriteNotification m = (WriteNotification) msg;
 				
-//				System.out.println("Server" + me + " get WriteNotification src=" + m.src + " acc_stamp=" + m.command.accept_stamp
-//						+ " V[" + m.command.server + "]=" + V.get(m.command.server));
+				System.out.println("Server" + me + " get WriteNotification src=" + m.src + " acc_stamp=" + m.command.accept_stamp
+						+ " V[" + m.command.server + "]=" + V.get(m.command.server));
 				
 				V.put(m.command.server, m.command.accept_stamp);
+				tentative.add(m.command);
+				antiEntropy();
 				
 				// primary server
-				if (me == 0) {
-					m.command.server = me;
-					m.command.accept_stamp = (TS++);
-					tentative.add(m.command);
-					antiEntropy();
-					
+				if (me == 0) {			
 					m.command.CSN = CSN++;
 					commitWrite(m.command);
 					tentative.remove(m.command);
 					committed.add(m.command);
-					antiEntropy();
-				} else {
-					tentative.add(m.command);
 					antiEntropy();
 				}
 			}
@@ -103,31 +96,51 @@ public class Server extends Process {
 		
 	}
 
+	private void commitReadOnly(Command command) {
+		
+		
+		try {
+			if (command.type.equals("get")) {
+				String songInfo = playList.getSongInfo(command.songName);
+				System.out.println("Get response: " + songInfo);
+			}
+		} catch (Exception e) {
+			System.out.println("Exception when committing read only: "
+					+ e.toString());
+		}
+		
+	}
+
 	private void commitWrite(Command command) {
-		if (command.type.equals("add")) {
-			playList.addSong(command.songName, command.url);
-		}
-		
-		else if  (command.type.equals("delete")) {
-			playList.deleteSong(command.songName);
-		}
-		
-		else if  (command.type.equals("edit")) {
-			playList.editSong(command.songName, command.url);
+		try {
+			if (command.type.equals("add")) {
+				playList.addSong(command.songName, command.url);
+			}
+
+			else if (command.type.equals("delete")) {
+				playList.deleteSong(command.songName);
+			}
+
+			else if (command.type.equals("edit")) {
+				playList.editSong(command.songName, command.url);
+			}
+		} catch (Exception e) {
+			System.out.println("Exception when committing write: "
+					+ e.toString());
 		}
 	}
 	
-	private void antiEntropy() {
+	synchronized private void antiEntropy() {
 		for (int R : connected_servers) {
 			if (R == me) continue;
 			
-//			System.out.println("antiEntropy from " + me + ", to " + R);
+			System.out.println("antiEntropy from " + me + ", to " + R);
 			
 			Server server = env.servers.get(R);
 			
 			// send committed writes that R does not know about
 			if (server.committed.size() < this.committed.size()) {
-//				System.out.println(">>>antiEntropy commit, from " + me + ", to " + R);
+				System.out.println(">>>antiEntropy commit, from " + me + ", to " + R);
 				for (Command cmd : committed) {
 					if (!server.committed.contains(cmd)) {
 						if (server.tentative.contains(cmd)) {
@@ -147,20 +160,20 @@ public class Server extends Process {
 			for (Command cmd : tentative) {
 				Integer VC = server.V.get(cmd.server);
 				if ((cmd.server != R) && (VC == null || VC < cmd.accept_stamp)) {
-//					System.out.println(">>>antiEntropy tentative, from " + me + ", to " + R  + "***** VC=" + VC + ", acc_stp=" + cmd.accept_stamp);
+					System.out.println(">>>antiEntropy tentative, from " + me + ", to " + R  + "***** VC=" + VC + ", acc_stp=" + cmd.accept_stamp);
 					sendServerMessage(R, new WriteNotification(me, cmd));
 				}
 			}
 		}
 	}
 
-	public void disconnect(int j) {
+	synchronized public void disconnect(int j) {
 		if (connected_servers.contains(j)) {
 			connected_servers.remove(j);
 		}
 	}
 
-	public void connect(int j) {
+	synchronized public void connect(int j) {
 		connected_servers.add(j);
 		antiEntropy();
 	}
