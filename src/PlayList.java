@@ -25,5 +25,13 @@ public class PlayList {
 		}
 		s.setURL(url);
 	}
+	
+	public String getSongInfo(String songName) {
+		Song s= songs.get(songName);
+		if (s == null) {
+			System.out.println("Error: '" + songName + "' not exists");
+		}
+		return s.toString();
+	}
 
 }

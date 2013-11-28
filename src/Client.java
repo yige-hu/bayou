@@ -1,6 +1,7 @@
 public class Client extends Process {
 	
 	int server;
+	int num_cmd = 0;
 	
 	public Client(Env env, int me) {
 		this.env = env;
@@ -38,15 +39,7 @@ public class Client extends Process {
 //				antiEntropy(m.command);
 //				
 //			}
-//			
-//			else if  (msg instanceof ClientReadMessage) {
-//				ClientReadMessage m = (ClientReadMessage) msg;
-//				performRead(m.command);
-//			}
-//			
-//			else {
-//				System.err.println("Server: unknown msg type");
-//			}
+
 		}
 		
 	}

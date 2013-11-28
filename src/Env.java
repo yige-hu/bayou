@@ -4,7 +4,6 @@ import java.util.*;
 public class Env {
 	Map<Integer, Server> servers = new HashMap<Integer, Server>();
 	Map<Integer, Client> clients = new HashMap<Integer, Client>();
-	//public final static int nAcceptors = 3, nReplicas = 2, nLeaders = 2, nRequests = 10;
 	
 	public final static int nInitServers = 3;
 	
@@ -60,35 +59,7 @@ public class Env {
 		reader.run();
 		
 		if (TEST_1) {
-//			sendMessage(clients[0], new ClientMessage("addBankClient 1"));
-//			sendMessage(clients[1], new ClientMessage("addBankClient 2 Jim"));
-//			sendMessage(clients[2], new ClientMessage("addBankClient 3 Lily"));
-//			sendMessage(clients[3], new ClientMessage("addBankClient 4"));
-//			
-//			sendMessage(clients[0], new ClientMessage("createAccount 1 1 100"));
-//			sendMessage(clients[0], new ClientMessage("createAccount 1 2"));
-//			sendMessage(clients[1], new ClientMessage("createAccount 2 1 200"));
-//			sendMessage(clients[2], new ClientMessage("createAccount 3 1 50"));
-//			
-//			sendMessage(clients[0], new ROCClientMessage("inquiry 1 1"));
-//			
-//			sendMessage(clients[0], new ClientMessage("deposit 1 1 150"));
-//			
-//			sendMessage(clients[0], new ROCClientMessage("inquiry 1 1"));
-//			sendMessage(clients[0], new ROCClientMessage("inquiry 1 1"));
-//			sendMessage(clients[0], new ROCClientMessage("inquiry 1 1"));
-//			
-//			sendMessage(clients[0], new ClientMessage("deposit 1 2 300"));
-//			sendMessage(clients[2], new ClientMessage("deposit 3 1 225"));
-//			
-//			sendMessage(clients[0], new ClientMessage("withdraw 1 1 30"));
-//			sendMessage(clients[1], new ClientMessage("withdraw 2 1 45"));
-//			
-//			sendMessage(clients[0], new ClientMessage("transfer 1 1 2 30"));
-//			sendMessage(clients[1], new ClientMessage("transfer 2 1 1 42 3"));
-//			
-//			sendMessage(clients[1], new ROCClientMessage("inquiry 1 2"));
-//			sendMessage(clients[2], new ROCClientMessage("inquiry 2 1"));
+
 		}
 		
 		

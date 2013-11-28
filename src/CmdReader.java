@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URL;
 import java.util.StringTokenizer;
 
 public class CmdReader extends Thread {
@@ -107,79 +108,24 @@ public class CmdReader extends Thread {
 					
 					if (cmdType.equals("add")) {
 						String url = t.nextToken();
-						Command cmd = new Command(cmdType, songName, url);
 						Client c = env.clients.get(client);
+						Command cmd = new Command(client, c.num_cmd++, cmdType, songName, new URL(url));
 						c.writeRequest(cmd);
 					}
 					
 					else if (cmdType.equals("delete")) {
-						Command cmd = new Command(cmdType, songName);
 						Client c = env.clients.get(client);
+						Command cmd = new Command(client, c.num_cmd++, cmdType, songName);
 						c.readRequest(cmd);
 					}
 					
 					else if (cmdType.equals("edit")) {
 						String url = t.nextToken();
-						Command cmd = new Command(cmdType, songName, url);
 						Client c = env.clients.get(client);
+						Command cmd = new Command(client, c.num_cmd++, cmdType, songName, new URL(url));
 						c.readRequest(cmd);
 					}
 				}
-				
-				
-//				if (type.equals("addBankClient")) {
-//					
-//					int clientID = Integer.parseInt(t.nextToken());
-//					
-//					if (t.hasMoreTokens()) {
-//						String name = t.nextToken();
-//						addBankClient(clientID, name);
-//					} else {
-//						addBankClient(clientID);
-//					}
-//					
-//				} else if (type.equals("createAccount")) {
-//					
-//					int clientID = Integer.parseInt(t.nextToken());
-//					int accountNum = Integer.parseInt(t.nextToken());
-//					
-//					if (t.hasMoreTokens()) {
-//						long balance = Long.parseLong(t.nextToken());
-//						createAccount(clientID, accountNum, balance);
-//					} else {
-//						createAccount(clientID, accountNum);
-//					}
-//					
-//				} else if (type.equals("deposit")) {
-//					
-//					int clientID = Integer.parseInt(t.nextToken());
-//					int accountNum = Integer.parseInt(t.nextToken());
-//					long amount = Long.parseLong(t.nextToken());
-//					
-//					deposit(clientID, accountNum, amount);
-//					
-//				} else if (type.equals("withdraw")) {
-//					
-//					int clientID = Integer.parseInt(t.nextToken());
-//					int accountNum = Integer.parseInt(t.nextToken());
-//					long amount = Long.parseLong(t.nextToken());
-//					
-//					withdraw(clientID, accountNum, amount);
-//					
-//				} else if (type.equals("transfer")) {
-//					
-//					int fromClient = Integer.parseInt(t.nextToken());
-//					int fromAcc = Integer.parseInt(t.nextToken());
-//					int toAcc = Integer.parseInt(t.nextToken());
-//					long amount = Long.parseLong(t.nextToken());
-//					
-//					if (t.hasMoreTokens()) {
-//						int toClient = Integer.parseInt(t.nextToken());
-//						transfer(fromClient, fromAcc, toAcc, amount, toClient);
-//					} else {
-//						transfer(fromClient, fromAcc, toAcc, amount);
-//					}
-//				}
 			} catch (Exception e) {
 				System.out.println("Invalid command: " + command + ", ");
 			}

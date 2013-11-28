@@ -1,12 +1,21 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class Server extends Process {
 	
 	List<Integer> connected_servers = new ArrayList<Integer>();
 	
-	PlayList commited, tentative;
+	List<Command> tentative = new ArrayList<Command>();
+	List<Command> committed = new ArrayList<Command>();
+	PlayList playList;
+	
+	Map<Integer, Integer> V = new HashMap<Integer, Integer>();
+	int TS = 0;
+	int CSN = 0;
+
 
 	public Server(Env env, int me) {
 		this.env = env;
@@ -29,16 +38,51 @@ public class Server extends Process {
 			Message msg = getNextMessage();
 
 			if (msg instanceof ClientWriteMessage) {
+
 				ClientWriteMessage m = (ClientWriteMessage) msg;
-				performWrite(m.command);
+				m.command.server = me;
+				m.command.accept_stamp = TS++;
+				tentative.add(m.command);
+				antiEntropy();
 				
-				antiEntropy(m.command);
-				
+				// primary server
+				if (me == 0) {
+					m.command.CSN = CSN++;
+					commitWrite(m.command);
+					tentative.remove(m.command);
+					committed.add(m.command);
+					antiEntropy();
+				}
 			}
 			
 			else if  (msg instanceof ClientReadMessage) {
 				ClientReadMessage m = (ClientReadMessage) msg;
-				performRead(m.command);
+				String songInfo = playList.getSongInfo(m.command.songName);
+				System.out.println(songInfo);
+			}
+			
+			else if  (msg instanceof CommitNotification) {
+				CommitNotification m = (CommitNotification) msg;
+				commitWrite(m.command);
+				tentative.remove(m.command);
+				committed.add(m.command);
+				antiEntropy();
+			}
+			
+			else if  (msg instanceof WriteNotification) {
+				WriteNotification m = (WriteNotification) msg;
+				V.put(m.src, m.command.accept_stamp);
+				tentative.add(m.command);
+				antiEntropy();
+				
+				// primary server
+				if (me == 0) {
+					m.command.CSN = CSN++;
+					commitWrite(m.command);
+					tentative.remove(m.command);
+					committed.add(m.command);
+					antiEntropy();
+				}
 			}
 			
 			else {
@@ -48,19 +92,47 @@ public class Server extends Process {
 		
 	}
 
-	private void performWrite(Command command) {
-		// TODO Auto-generated method stub
+	private void commitWrite(Command command) {
+		if (command.type.equals("add")) {
+			playList.addSong(command.songName, command.url);
+		}
 		
-	}
-
-	private void performRead(Command command) {
-		// TODO Auto-generated method stub
+		else if  (command.type.equals("delete")) {
+			playList.deleteSong(command.songName);
+		}
 		
+		else if  (command.type.equals("edit")) {
+			playList.editSong(command.songName, command.url);
+		}
 	}
 	
-	private void antiEntropy(Command command) {
-		// TODO Auto-generated method stub
-		
+	private void antiEntropy() {
+		for (int R : connected_servers) {
+			Server server = env.servers.get(R);
+			// send committed writes that R does not know about
+			if (server.committed.size() < this.committed.size()) {
+				for (Command cmd : committed) {
+					if (!server.committed.contains(cmd)) {
+						if (server.tentative.contains(cmd)) {
+							sendServerMessage(me, new CommitNotification(me,
+									cmd));
+						} else {
+							sendServerMessage(me,
+									new WriteNotification(me, cmd));
+							sendServerMessage(me, new CommitNotification(me,
+									cmd));
+						}
+					}
+				}
+			}
+
+			// send all the tentative writes
+			for (Command cmd : tentative) {
+				if (server.V.get(cmd.server) < cmd.accept_stamp) {
+					sendServerMessage(me, new WriteNotification(me, cmd));
+				}
+			}
+		}
 	}
 
 	public void disconnect(int j) {
@@ -74,13 +146,13 @@ public class Server extends Process {
 	public void printLog() {
 		System.out.println("Log: server " + me + "\n");
 		System.out.println("commited:\n");
-		for (Song s : commited.songs.values()) {
-			System.out.println("\t" + s + "\n");
+		for (Command cmd : committed) {
+			System.out.println(cmd);
 		}
 		
 		System.out.println("tentative:\n");
-		for (Song s : tentative.songs.values()) {
-			System.out.println("\t" + s + "\n");
+		for (Command cmd : tentative) {
+			System.out.println(cmd);
 		}
 	}
 }
