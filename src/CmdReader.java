@@ -20,10 +20,9 @@ public class CmdReader extends Thread {
 		String command = null;
 		
 		for (;;) {
-			System.out.println("Input command:\n");
+			System.out.println("Input command:");
 			try {
 				command = br.readLine();
-				break;
 			} catch (IOException e1) {
 				System.out.println("Readline error: " + e1);
 			}
@@ -116,18 +115,27 @@ public class CmdReader extends Thread {
 					else if (cmdType.equals("delete")) {
 						Client c = env.clients.get(client);
 						Command cmd = new Command(client, c.num_cmd++, cmdType, songName);
-						c.readRequest(cmd);
+						c.writeRequest(cmd);
 					}
 					
 					else if (cmdType.equals("edit")) {
 						String url = t.nextToken();
 						Client c = env.clients.get(client);
 						Command cmd = new Command(client, c.num_cmd++, cmdType, songName, new URL(url));
-						c.readRequest(cmd);
+						c.writeRequest(cmd);
+					}
+					
+					else if (cmdType.equals("get")) {
+						Client c = env.clients.get(client);
+						Command cmd = new Command(client, c.num_cmd++, cmdType, songName);
+						c.readOnlyRequest(cmd);
 					}
 				}
+				else {
+					System.out.println("Invalid command: '" + command + "'");
+				}
 			} catch (Exception e) {
-				System.out.println("Invalid command: " + command + ", ");
+				System.out.println("Invalid command: '" + command + "'");
 			}
 		}
 		

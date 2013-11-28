@@ -1,16 +1,19 @@
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 public class Server extends Process {
 	
 	List<Integer> connected_servers = new ArrayList<Integer>();
 	
-	List<Command> tentative = new ArrayList<Command>();
-	List<Command> committed = new ArrayList<Command>();
-	PlayList playList;
+	Set<Command> tentative = new HashSet<Command>();
+	Set<Command> committed = new HashSet<Command>();
+	PlayList playList = new PlayList();
 	
 	Map<Integer, Integer> V = new HashMap<Integer, Integer>();
 	int TS = 0;
@@ -31,17 +34,17 @@ public class Server extends Process {
 	
 	@Override
 	void body() {
-		System.out.println("Here I am: " + me);
+		System.out.println("Here I am: server" + me);
 		for (;;) {
 			while (Env.pause);
 			
 			Message msg = getNextMessage();
 
 			if (msg instanceof ClientWriteMessage) {
-
+				
 				ClientWriteMessage m = (ClientWriteMessage) msg;
 				m.command.server = me;
-				m.command.accept_stamp = TS++;
+				m.command.accept_stamp = (TS++);
 				tentative.add(m.command);
 				antiEntropy();
 				
@@ -55,10 +58,10 @@ public class Server extends Process {
 				}
 			}
 			
-			else if  (msg instanceof ClientReadMessage) {
-				ClientReadMessage m = (ClientReadMessage) msg;
+			else if  (msg instanceof ClientReadOnlyMessage) {
+				ClientReadOnlyMessage m = (ClientReadOnlyMessage) msg;
 				String songInfo = playList.getSongInfo(m.command.songName);
-				System.out.println(songInfo);
+				System.out.println("Get response: " + songInfo);
 			}
 			
 			else if  (msg instanceof CommitNotification) {
@@ -71,16 +74,26 @@ public class Server extends Process {
 			
 			else if  (msg instanceof WriteNotification) {
 				WriteNotification m = (WriteNotification) msg;
-				V.put(m.src, m.command.accept_stamp);
-				tentative.add(m.command);
-				antiEntropy();
+				
+//				System.out.println("Server" + me + " get WriteNotification src=" + m.src + " acc_stamp=" + m.command.accept_stamp
+//						+ " V[" + m.command.server + "]=" + V.get(m.command.server));
+				
+				V.put(m.command.server, m.command.accept_stamp);
 				
 				// primary server
 				if (me == 0) {
+					m.command.server = me;
+					m.command.accept_stamp = (TS++);
+					tentative.add(m.command);
+					antiEntropy();
+					
 					m.command.CSN = CSN++;
 					commitWrite(m.command);
 					tentative.remove(m.command);
 					committed.add(m.command);
+					antiEntropy();
+				} else {
+					tentative.add(m.command);
 					antiEntropy();
 				}
 			}
@@ -94,6 +107,8 @@ public class Server extends Process {
 
 	private void commitWrite(Command command) {
 		if (command.type.equals("add")) {
+			String songName = command.songName;
+			URL url = command.url;
 			playList.addSong(command.songName, command.url);
 		}
 		
@@ -108,18 +123,24 @@ public class Server extends Process {
 	
 	private void antiEntropy() {
 		for (int R : connected_servers) {
+			if (R == me) continue;
+			
+//			System.out.println("antiEntropy from " + me + ", to " + R);
+			
 			Server server = env.servers.get(R);
+			
 			// send committed writes that R does not know about
 			if (server.committed.size() < this.committed.size()) {
+//				System.out.println(">>>antiEntropy commit, from " + me + ", to " + R);
 				for (Command cmd : committed) {
 					if (!server.committed.contains(cmd)) {
 						if (server.tentative.contains(cmd)) {
-							sendServerMessage(me, new CommitNotification(me,
+							sendServerMessage(R, new CommitNotification(me,
 									cmd));
 						} else {
-							sendServerMessage(me,
+							sendServerMessage(R,
 									new WriteNotification(me, cmd));
-							sendServerMessage(me, new CommitNotification(me,
+							sendServerMessage(R, new CommitNotification(me,
 									cmd));
 						}
 					}
@@ -128,31 +149,33 @@ public class Server extends Process {
 
 			// send all the tentative writes
 			for (Command cmd : tentative) {
-				if (server.V.get(cmd.server) < cmd.accept_stamp) {
-					sendServerMessage(me, new WriteNotification(me, cmd));
+				Integer VC = server.V.get(cmd.server);
+				if ((cmd.server != R) && (VC == null || VC < cmd.accept_stamp)) {
+//					System.out.println(">>>antiEntropy tentative, from " + me + ", to " + R  + "***** VC=" + VC + ", acc_stp=" + cmd.accept_stamp);
+					sendServerMessage(R, new WriteNotification(me, cmd));
 				}
 			}
 		}
 	}
 
 	public void disconnect(int j) {
-		connected_servers.add(j);		
-	}
-
-	public void connect(int j) {
 		connected_servers.remove(j);
 	}
 
+	public void connect(int j) {
+		connected_servers.add(j);
+	}
+
 	public void printLog() {
-		System.out.println("Log: server " + me + "\n");
-		System.out.println("commited:\n");
+		System.out.println("Log: server" + me);
+		System.out.println("\tcommited:");
 		for (Command cmd : committed) {
-			System.out.println(cmd);
+			System.out.println("\t" + cmd);
 		}
 		
-		System.out.println("tentative:\n");
+		System.out.println("\ttentative:");
 		for (Command cmd : tentative) {
-			System.out.println(cmd);
+			System.out.println("\t" + cmd);
 		}
 	}
 }

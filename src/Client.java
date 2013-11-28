@@ -6,6 +6,7 @@ public class Client extends Process {
 	public Client(Env env, int me) {
 		this.env = env;
 		this.me = me;
+		this.server = 0;
 		
 		env.addClient(me, this);
 	}
@@ -25,7 +26,7 @@ public class Client extends Process {
 
 	@Override
 	void body() {
-		System.out.println("Here I am: " + me);
+		System.out.println("Here I am: client" + me + " , connected with server" + server);
 		for (;;) {
 			while (Env.pause);
 			
@@ -45,11 +46,15 @@ public class Client extends Process {
 	}
 
 	public void writeRequest(Command cmd) {
-		sendClientMessage(server, new ClientWriteMessage(me, cmd));
+		sendServerMessage(server, new ClientWriteMessage(me, cmd));
 	}
 
-	public void readRequest(Command cmd) {
-		sendClientMessage(server, new ClientReadMessage(me, cmd));
+	public void readOnlyRequest(Command cmd) {
+		sendServerMessage(server, new ClientReadOnlyMessage(me, cmd));
+	}
+
+	public void printLog() {
+		System.out.println("Status: client" + me + " connected with server" + server);
 	}
 
 

@@ -13,9 +13,9 @@ class ClientWriteMessage extends Message {
 	}
 }
 
-class ClientReadMessage extends Message {
+class ClientReadOnlyMessage extends Message {
 	Command command;
-	public ClientReadMessage(int src, Command command){
+	public ClientReadOnlyMessage(int src, Command command){
 		this.src = src; this.command = command;
 	}
 }

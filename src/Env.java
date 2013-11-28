@@ -86,6 +86,7 @@ public class Env {
 		Server s2 = servers.get(j);
 		s1.disconnect(j);
 		s2.disconnect(i);
+		System.out.println("breakConnection " + i + " " + j);
 	}
 	
 	void recoverConnection(int i, int j) {
@@ -93,11 +94,15 @@ public class Env {
 		Server s2 = servers.get(j);
 		s1.connect(j);
 		s2.connect(i);
+		System.out.println("Connect " + i + " " + j);
 	}
 
 	public void printLog() {
 		for (Server s : servers.values()) {
 			s.printLog();
+		}
+		for (Client c : clients.values()) {
+			c.printLog();
 		}
 	}
 
