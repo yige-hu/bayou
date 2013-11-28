@@ -1,15 +1,13 @@
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 
 public class Server extends Process {
 	
-	List<Integer> connected_servers = new ArrayList<Integer>();
+	Set<Integer> connected_servers = new HashSet<Integer>();
 	
 	Set<Command> tentative = new HashSet<Command>();
 	Set<Command> committed = new HashSet<Command>();
@@ -107,8 +105,6 @@ public class Server extends Process {
 
 	private void commitWrite(Command command) {
 		if (command.type.equals("add")) {
-			String songName = command.songName;
-			URL url = command.url;
 			playList.addSong(command.songName, command.url);
 		}
 		
@@ -159,11 +155,14 @@ public class Server extends Process {
 	}
 
 	public void disconnect(int j) {
-		connected_servers.remove(j);
+		if (connected_servers.contains(j)) {
+			connected_servers.remove(j);
+		}
 	}
 
 	public void connect(int j) {
 		connected_servers.add(j);
+		antiEntropy();
 	}
 
 	public void printLog() {

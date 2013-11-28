@@ -135,7 +135,7 @@ public class CmdReader extends Thread {
 					System.out.println("Invalid command: '" + command + "'");
 				}
 			} catch (Exception e) {
-				System.out.println("Invalid command: '" + command + "'");
+				System.out.println("Invalid command: '" + command + "' " + e.toString());
 			}
 		}
 		

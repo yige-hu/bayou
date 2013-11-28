@@ -107,7 +107,7 @@ public class Env {
 	}
 
 	public void printLog(int server) {
-		Server s = servers.get(servers);
+		Server s = servers.get(server);
 		s.printLog();
 	}
 
