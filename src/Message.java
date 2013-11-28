@@ -40,3 +40,10 @@ class WriteNotification extends Message {
 		this.src = src; this.command = command;
 	}
 }
+
+class WidResponseMessage extends Message {
+	int TS;
+	public WidResponseMessage(int src, int TS){
+		this.TS = TS;
+	}
+}

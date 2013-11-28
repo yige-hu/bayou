@@ -42,8 +42,11 @@ public class Server extends Process {
 				
 				ClientWriteMessage m = (ClientWriteMessage) msg;
 				m.command.server = me;
-				m.command.accept_stamp = (TS++);
+				m.command.accept_stamp = (++TS);
 				tentative.add(m.command);
+				
+				sendClientMessage(m.src, new WidResponseMessage(me, TS));
+				
 				antiEntropy();
 				
 				// primary server write stable
@@ -60,8 +63,11 @@ public class Server extends Process {
 				
 				ClientWriteOnlyMessage m = (ClientWriteOnlyMessage) msg;
 				m.command.server = me;
-				m.command.accept_stamp = (TS++);
+				m.command.accept_stamp = (++TS);
 				tentative.add(m.command);
+				
+				sendClientMessage(m.src, new WidResponseMessage(me, TS));
+				
 				antiEntropy();
 				
 				// primary server write stable
