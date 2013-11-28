@@ -35,6 +35,6 @@ public class Command {
 
 	public String toString(){
 		return "Command(client=" + client + ", cmd_id=" + cmd_id + ", " +
-				"server=" + server + " ,accept_stamp=" + accept_stamp + " ,CSN=" + CSN + ")";
+				"server=" + server + " ,accept_stamp=" + accept_stamp + " ,CSN=" + CSN + " '" + type + " " + songName + "')";
 	}
 }

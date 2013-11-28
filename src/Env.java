@@ -9,7 +9,11 @@ public class Env {
 	
 	public static boolean pause = false;
 	
-	private static boolean TEST_1 = true;
+	public final static boolean DEBUG = true;
+	
+	private static boolean TEST_1 = false;
+	
+	
 
 	synchronized void sendServerMessage(int dst, Message msg){
 		Process p = servers.get(dst);

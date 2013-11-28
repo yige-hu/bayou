@@ -46,7 +46,7 @@ public class Server extends Process {
 				tentative.add(m.command);
 				antiEntropy();
 				
-				// primary server
+				// primary server write stable
 				if (me == 0) {
 					m.command.CSN = CSN++;
 					commitWrite(m.command);
@@ -72,14 +72,24 @@ public class Server extends Process {
 			else if  (msg instanceof WriteNotification) {
 				WriteNotification m = (WriteNotification) msg;
 				
-				System.out.println("Server" + me + " get WriteNotification src=" + m.src + " acc_stamp=" + m.command.accept_stamp
-						+ " V[" + m.command.server + "]=" + V.get(m.command.server));
+				if (V.get(m.command.server) != null && V.get(m.command.server) >= m.command.accept_stamp) {
+					continue;
+				}
+
+				if (Env.DEBUG) {
+					System.out
+							.println("Server" + me
+									+ " get WriteNotification src=" + m.src
+									+ " acc_stamp=" + m.command.accept_stamp
+									+ " V[" + m.command.server + "]="
+									+ V.get(m.command.server));
+				}
 				
 				V.put(m.command.server, m.command.accept_stamp);
 				tentative.add(m.command);
 				antiEntropy();
 				
-				// primary server
+				// primary server write stable
 				if (me == 0) {			
 					m.command.CSN = CSN++;
 					commitWrite(m.command);
@@ -134,13 +144,14 @@ public class Server extends Process {
 		for (int R : connected_servers) {
 			if (R == me) continue;
 			
-			System.out.println("antiEntropy from " + me + ", to " + R);
-			
 			Server server = env.servers.get(R);
 			
 			// send committed writes that R does not know about
 			if (server.committed.size() < this.committed.size()) {
-				System.out.println(">>>antiEntropy commit, from " + me + ", to " + R);
+				if (Env.DEBUG) {
+					System.out.println(">>>antiEntropy commit, from " + me
+							+ ", to " + R);
+				}
 				for (Command cmd : committed) {
 					if (!server.committed.contains(cmd)) {
 						if (server.tentative.contains(cmd)) {
@@ -160,7 +171,11 @@ public class Server extends Process {
 			for (Command cmd : tentative) {
 				Integer VC = server.V.get(cmd.server);
 				if ((cmd.server != R) && (VC == null || VC < cmd.accept_stamp)) {
-					System.out.println(">>>antiEntropy tentative, from " + me + ", to " + R  + "***** VC=" + VC + ", acc_stp=" + cmd.accept_stamp);
+					if (Env.DEBUG) {
+						System.out.println(">>>antiEntropy tentative, from "
+								+ me + ", to " + R + "***** VC=" + VC
+								+ ", acc_stp=" + cmd.accept_stamp);
+					}
 					sendServerMessage(R, new WriteNotification(me, cmd));
 				}
 			}
