@@ -1,6 +1,4 @@
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -38,11 +36,11 @@ public class CmdReader extends Thread {
 					Env.pause = true;
 				}
 				
-				if (type.equals("continue")) {
+				else if (type.equals("continue")) {
 					Env.pause = false;
 				}
 				
-				if (type.equals("printLog")) {
+				else if (type.equals("printLog")) {
 					if (t.hasMoreTokens()) {
 						int server = Integer.parseInt(t.nextToken());
 						env.printLog(server);
@@ -51,39 +49,83 @@ public class CmdReader extends Thread {
 					}
 				}
 				
-				if (type.equals("isolate")) {
+				else if (type.equals("isolate")) {
 					int server = Integer.parseInt(t.nextToken());
 					env.isolate(server);
 				}
 				
-				if (type.equals("reconnect")) {
+				else if (type.equals("reconnect")) {
 					int server = Integer.parseInt(t.nextToken());
 					env.reconnect(server);
 				}
 				
-				if (type.equals("breakConnection")) {
+				else if (type.equals("breakConnection")) {
 					int server1 = Integer.parseInt(t.nextToken());
 					int server2 = Integer.parseInt(t.nextToken());
 					env.breakConnection(server1, server2);
 				}
 				
-				if (type.equals("recoverConnection")) {
+				else if (type.equals("recoverConnection")) {
 					int server1 = Integer.parseInt(t.nextToken());
 					int server2 = Integer.parseInt(t.nextToken());
 					env.recoverConnection(server1, server2);
 				}
 				
-				if (type.equals("join")) {
+				// server management
+				else if (type.equals("join")) {
 					int server = Integer.parseInt(t.nextToken());
 					env.join(server);
 				}
 				
-				if (type.equals("leave")) {
+				else if (type.equals("leave")) {
 					int server = Integer.parseInt(t.nextToken());
 					env.leave(server);
 				}
 				
-				int sendClientNum = Integer.parseInt(t.nextToken());
+				// client management
+				else if (type.equals("clientCreate")) {
+					if (t.hasMoreTokens()) {
+						int server = Integer.parseInt(t.nextToken());
+						Client c = new Client(env, env.clients.size(), server);
+					} else {
+						Client c = new Client(env, env.clients.size());
+					}
+				}
+				
+				else if (type.equals("clientConnect")) {
+					int client = Integer.parseInt(t.nextToken());
+					int server = Integer.parseInt(t.nextToken());
+					env.clients.get(client).server = server;
+				}
+				
+				// commands to client
+				else if (type.equals("client")) {
+					int client = Integer.parseInt(t.nextToken());
+					
+					String cmdType = t.nextToken();
+					String songName = t.nextToken();
+					
+					if (cmdType.equals("add")) {
+						String url = t.nextToken();
+						Command cmd = new Command(cmdType, songName, url);
+						Client c = env.clients.get(client);
+						c.writeRequest(cmd);
+					}
+					
+					else if (cmdType.equals("delete")) {
+						Command cmd = new Command(cmdType, songName);
+						Client c = env.clients.get(client);
+						c.readRequest(cmd);
+					}
+					
+					else if (cmdType.equals("edit")) {
+						String url = t.nextToken();
+						Command cmd = new Command(cmdType, songName, url);
+						Client c = env.clients.get(client);
+						c.readRequest(cmd);
+					}
+				}
+				
 				
 //				if (type.equals("addBankClient")) {
 //					

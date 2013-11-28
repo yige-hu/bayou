@@ -3,19 +3,19 @@
 import java.util.*;
 
 public class Message {
-	ProcessId src;
+	int src;
 }
 
 class ClientWriteMessage extends Message {
 	Command command;
-	public ClientWriteMessage(ProcessId src, Command command){
+	public ClientWriteMessage(int src, Command command){
 		this.src = src; this.command = command;
 	}
 }
 
 class ClientReadMessage extends Message {
 	Command command;
-	public ClientReadMessage(ProcessId src, Command command){
+	public ClientReadMessage(int src, Command command){
 		this.src = src; this.command = command;
 	}
 }
