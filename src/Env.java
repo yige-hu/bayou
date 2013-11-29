@@ -49,6 +49,7 @@ public class Env {
 
 	void run(String[] args){
 
+		// default 3 servers
 		for (int i = 0; i < nInitServers; i++) {
 			Server s = new Server(this, i);
 		}
@@ -58,6 +59,9 @@ public class Env {
 				recoverConnection(i, j);
 			}
 		}
+		
+		// default 1 client, connected to Server0
+		Client c = new Client(this, this.clients.size());
 		
 		CmdReader reader = new CmdReader(this);
 		reader.run();

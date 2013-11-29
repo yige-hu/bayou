@@ -34,8 +34,11 @@ public class Command implements Comparable {
 	}
 
 	public String toString(){
-		return "Command(client=" + client + ", cmd_id=" + cmd_id + ", " +
-				"server=" + server + " ,accept_stamp=" + accept_stamp + " ,CSN=" + CSN + " '" + type + " " + songName + "')";
+		String s = "Command(client=" + client + ", cmd_id=" + cmd_id + ", " +
+				"server=" + server + " ,accept_stamp=" + accept_stamp + " ,CSN=" + CSN + " '" + type + " " + songName;
+		if (url != null) s += " " + url.toString();
+		s += "')";
+		return s;
 	}
 
 	@Override
