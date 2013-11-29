@@ -4,9 +4,10 @@ public class ServerId {
 	ServerId Sk;
 	int Tki;
 
-	public ServerId(ServerId Sk, int Tki){
+	public ServerId(ServerId Sk, int Tki, int num){
 		this.Sk = Sk;
 		this.Tki = Tki;
+		this.num = num;
 	}
 
 //	public boolean equals(Object other){
@@ -22,6 +23,6 @@ public class ServerId {
 //	}
 
 	public String toString(){
-		return "ServerId(" + Sk + ", " + Tki + ")";
+		return "ServerId(" + Tki + ", " + Sk + ")";
 	}
 }

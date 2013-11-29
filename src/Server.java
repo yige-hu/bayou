@@ -26,8 +26,9 @@ public class Server extends Process {
 	public Server(Env env, int me) {
 		this.env = env;
 		this.me = me;
+		connected_servers.add(me);
 		
-		this.serverId = null;
+		this.serverId = new ServerId(null, TS, me);
 		
 		env.addServer(me, this);
 	}
@@ -35,8 +36,7 @@ public class Server extends Process {
 	public Server(Env env, int me, int creator) {
 		this.env = env;
 		this.me = me;
-		
-		
+		connected_servers.add(me);
 		
 		env.addServerCreation(me, this, creator);
 	}
@@ -125,7 +125,21 @@ public class Server extends Process {
 			else if  (msg instanceof WriteNotification) {
 				WriteNotification m = (WriteNotification) msg;
 				
-//				if (V.get(m.command.server) != null && V.get(m.command.server) >= m.command.accept_stamp) {
+				// original version vector: V
+				//if (V.get(m.command.server) != null && V.get(m.command.server) >= m.command.accept_stamp) {
+				
+				if (Env.DEBUG_RETIREMENT) {
+					if (m.command.type.equals("retire")) {
+						System.out.println("server" + me
+								+ " get retirement serverId="
+								+ m.command.serverId + ", acc_stp="
+								+ m.command.accept_stamp + ", V[Si]="
+								+ V.get(m.command.server) + " CompleteV[Sk]="
+								+ getCompleteV(m.command.serverId.Sk));
+					}
+				}
+				
+				// complete version vector: CompleteV
 				if (getCompleteV(m.command.serverId) >= m.command.accept_stamp) {
 					continue;
 				}
@@ -262,7 +276,7 @@ public class Server extends Process {
 	}
 
 	public void printLog() {
-		System.out.println("Log: server" + me);
+		System.out.println("Log: server" + me + ", ServerId=" + serverId);
 		System.out.println("\tcommited:");
 		for (Command cmd : committed) {
 			System.out.println("\t" + cmd);
@@ -282,7 +296,7 @@ public class Server extends Process {
 			CreationWriteResponse m = (CreationWriteResponse) msg;
 			this.TS = m.TS;
 			this.connected_servers.addAll(m.connected_servers);
-			this.serverId = new ServerId(env.servers.get(creator).serverId, TS);
+			this.serverId = new ServerId(env.servers.get(creator).serverId, TS, me);
 		} else {
 			System.out.println("Server" + me
 					+ ": invalid CreationWriteResponse from server" + msg.src

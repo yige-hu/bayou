@@ -9,10 +9,10 @@ public class Env {
 	
 	public static boolean pause = false;
 	
-	public final static boolean DEBUG = true;
+	public static final boolean DEBUG = false;
+	public static final boolean DEBUG_RETIREMENT = false;
 	
 	private static boolean TEST_1 = false;
-	
 	
 
 	 void sendServerMessage(int dst, Message msg){
@@ -66,15 +66,9 @@ public class Env {
 	void run(String[] args){
 
 		// default 3 servers
-		for (int i = 0; i < nInitServers; i++) {
-			Server s = new Server(this, i);
-		}
-		
-		for (int i = 0; i < nInitServers; i++) {
-			for (int j = i; j < nInitServers; j++) {
-				recoverConnection(i, j);
-			}
-		}
+		Server s0 = new Server(this, 0);
+		join(1);
+		join(2);
 		
 		// default 1 client, connected to Server0
 		Client c = new Client(this, this.clients.size());
