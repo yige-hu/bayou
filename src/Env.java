@@ -15,10 +15,12 @@ public class Env {
 	
 	
 
-	synchronized void sendServerMessage(int dst, Message msg){
+	 void sendServerMessage(int dst, Message msg){
 		Process p = servers.get(dst);
 		if (p != null) {
 			p.deliver(msg);
+		} else {
+			System.out.println("server not exists: server" + dst);
 		}
 	}
 	
@@ -32,6 +34,21 @@ public class Env {
 	synchronized void addServer(int pid, Server proc){
 		servers.put(pid, proc);
 		proc.start();
+	}
+	
+
+	synchronized public void addServerCreation(int pid, Server proc, int creator) {
+		servers.put(pid, proc);
+		proc.creationWrite(creator);
+		
+		try {
+		    Thread.sleep(10);
+		} catch(InterruptedException ex) {
+		    Thread.currentThread().interrupt();
+		}
+		
+		proc.start();
+		proc.active = true;
 	}
 
 	synchronized void removeServer(int pid){
@@ -120,12 +137,12 @@ public class Env {
 	}
 
 	public void join(int server) {
-		Server s = new Server(this, server);
-		// TODO new server join
+		Server s = new Server(this, server, 0);
 	}
 
 	public void leave(int server) {
 		// TODO server retirement
 		
 	}
+
 }

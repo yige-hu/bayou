@@ -41,9 +41,23 @@ class WriteNotification extends Message {
 	}
 }
 
-class WidResponseMessage extends Message {
+class TSResponseMessage extends Message {
 	int TS;
-	public WidResponseMessage(int src, int TS){
-		this.TS = TS;
+	public TSResponseMessage(int src, int TS){
+		this.src = src; this.TS = TS;
+	}
+}
+
+class CreationWriteMessage extends Message {
+	Command command;
+	public CreationWriteMessage(int src, Command command){
+		this.src = src; this.command = command;
+	}
+}
+
+class CreationWriteResponse extends Message {
+	int TS; Set<Integer> connected_servers;
+	public CreationWriteResponse(int src, int TS, Set<Integer> connected_servers){
+		this.src = src; this.TS = TS; this.connected_servers = connected_servers;
 	}
 }

@@ -18,13 +18,25 @@ public class Server extends Process {
 	Map<Integer, Integer> V_commit = new HashMap<Integer, Integer>();
 	int TS = 0;
 	int CSN = 0;
+	
+	ServerId serverId;
+	boolean active = false;
 
 
 	public Server(Env env, int me) {
 		this.env = env;
 		this.me = me;
+		this.active = true;
 		
 		env.addServer(me, this);
+	}
+	
+	public Server(Env env, int me, int creator) {
+		this.env = env;
+		this.me = me;
+//		this.serverId = new ServerId(Sk, Tki);
+		
+		env.addServerCreation(me, this, creator);
 	}
 
 	public void run(){
@@ -42,13 +54,18 @@ public class Server extends Process {
 
 			if (msg instanceof ClientWriteMessage) {
 				
+				if (!active) {
+					System.out.println("server" + me + ": not active.");
+					continue;
+				}
+				
 				ClientWriteMessage m = (ClientWriteMessage) msg;
 				m.command.server = me;
 				m.command.accept_stamp = (++TS);
 				V.put(me, TS);
 				tentative.add(m.command);
 				
-				sendClientMessage(m.src, new WidResponseMessage(me, TS));
+				sendClientMessage(m.src, new TSResponseMessage(me, TS));
 				
 				antiEntropy();
 				
@@ -71,7 +88,7 @@ public class Server extends Process {
 				V.put(me, TS);
 				tentative.add(m.command);
 				
-				sendClientMessage(m.src, new WidResponseMessage(me, TS));
+				sendClientMessage(m.src, new TSResponseMessage(me, TS));
 				
 				antiEntropy();
 				
@@ -131,8 +148,32 @@ public class Server extends Process {
 				}
 			}
 			
+			else if (msg instanceof CreationWriteMessage) {
+				
+				CreationWriteMessage m = (CreationWriteMessage) msg;
+				m.command.accept_stamp = (++TS);
+				V.put(m.src, TS);
+				tentative.add(m.command);
+				
+				this.connected_servers.add(m.src);
+				sendServerMessage(m.src, new CreationWriteResponse(me, TS, connected_servers));
+				
+				antiEntropy();
+				
+				// primary server write stable
+				if (me == 0) {
+					m.command.CSN = CSN++;
+					commit(m.command);
+					tentative.remove(m.command);
+					committed.add(m.command);
+					V_commit.put(m.command.server, m.command.accept_stamp);
+					antiEntropy();
+				}
+				
+			}
+			
 			else {
-				System.err.println("Server: unknown msg type");
+				System.err.println("Server" + me + ": unknown msg type" + msg.getClass());
 			}
 		}
 		
@@ -140,7 +181,9 @@ public class Server extends Process {
 
 	private void commit(Command command) {
 		try {
-			if (command.type.equals("add")) {
+			if (command.type.equals("create")) {
+				this.connected_servers.add(command.server);
+			} else if (command.type.equals("add")) {
 				playList.addSong(command.songName, command.url);
 			} else if (command.type.equals("delete")) {
 				playList.deleteSong(command.songName);
@@ -219,6 +262,21 @@ public class Server extends Process {
 		System.out.println("\ttentative:");
 		for (Command cmd : tentative) {
 			System.out.println("\t" + cmd);
+		}
+	}
+
+	public void creationWrite(int creator) {
+		Command cmd = new Command("create", me);
+		sendServerMessage(creator, new CreationWriteMessage(me, cmd));
+		Message msg = getNextMessage();
+		if (msg instanceof CreationWriteResponse) {
+			CreationWriteResponse m = (CreationWriteResponse) msg;
+			this.TS = m.TS;
+			this.connected_servers.addAll(m.connected_servers);
+		} else {
+			System.out.println("Server" + me
+					+ ": invalid CreationWriteResponse from server" + msg.src
+					+ " msg type=" + msg.getClass());
 		}
 	}
 }

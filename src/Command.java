@@ -27,6 +27,11 @@ public class Command implements Comparable {
 		this.type = type;
 		this.songName = songName;
 	}
+	
+	public Command(String type, int server) {
+		this.type = type;
+		this.server = server;
+	}
 
 	public boolean equals(Object o) {
 		Command other = (Command) o;
@@ -34,9 +39,16 @@ public class Command implements Comparable {
 	}
 
 	public String toString(){
-		String s = "Command(client=" + client + ", cmd_id=" + cmd_id + ", " +
-				"server=" + server + " ,accept_stamp=" + accept_stamp + " ,CSN=" + CSN + " '" + type + " " + songName;
-		if (url != null) s += " " + url.toString();
+		String s = "Command('";
+		if (type.equals("create")) {
+			s += "create server" + server;
+		} else {
+			s += "client=" + client + ", cmd_id=" + cmd_id + ", " + "server="
+					+ server + " ,accept_stamp=" + accept_stamp + " ,CSN="
+					+ CSN + " '" + type + " " + songName;
+			if (url != null)
+				s += " " + url.toString();
+		}
 		s += "')";
 		return s;
 	}

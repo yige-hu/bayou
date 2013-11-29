@@ -47,8 +47,8 @@ public class Client extends Process {
 		if (RYW) {
 			sendServerMessage(server, new ClientWriteMessage(me, cmd));
 			Message msg = getNextMessage();
-			if (msg instanceof WidResponseMessage) {
-				WidResponseMessage m = (WidResponseMessage) msg;
+			if (msg instanceof TSResponseMessage) {
+				TSResponseMessage m = (TSResponseMessage) msg;
 				write_vector.put(server, m.TS);
 			} else {
 				System.out.println("Client" + me
@@ -77,8 +77,8 @@ public class Client extends Process {
 	public void writeOnlyRequest(Command cmd) {
 		sendServerMessage(server, new ClientWriteOnlyMessage(me, cmd));
 		Message msg = getNextMessage();
-		if (msg instanceof WidResponseMessage) {
-			WidResponseMessage m = (WidResponseMessage) msg;
+		if (msg instanceof TSResponseMessage) {
+			TSResponseMessage m = (TSResponseMessage) msg;
 			write_vector.put(server, m.TS);
 		} else {
 			System.out.println("Client" + me + ": invalid WidResponseMessage from server" + server);
