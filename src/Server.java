@@ -20,13 +20,12 @@ public class Server extends Process {
 	int CSN = 0;
 	
 	ServerId serverId;
-	boolean active = false;
+	boolean active = true;
 
 
 	public Server(Env env, int me) {
 		this.env = env;
 		this.me = me;
-		this.active = true;
 		
 		env.addServer(me, this);
 	}
@@ -43,21 +42,22 @@ public class Server extends Process {
 		body();
 		env.removeServer(me);
 	}
-	
+
 	@Override
 	void body() {
 		System.out.println("Here I am: server" + me);
 		for (;;) {
+			
+			if (!active) {
+				System.out.println("server" + me + ": active=false, enter retirement.");
+				break;
+			}
+			
 			while (Env.pause);
 			
 			Message msg = getNextMessage();
 
 			if (msg instanceof ClientWriteMessage) {
-				
-				if (!active) {
-					System.out.println("server" + me + ": not active.");
-					continue;
-				}
 				
 				ClientWriteMessage m = (ClientWriteMessage) msg;
 				m.command.server = me;
@@ -183,6 +183,9 @@ public class Server extends Process {
 		try {
 			if (command.type.equals("create")) {
 				this.connected_servers.add(command.server);
+			} else if (command.type.equals("retire")) {
+				this.connected_servers.remove(command.server);
+				this.V.remove(command.server);
 			} else if (command.type.equals("add")) {
 				playList.addSong(command.songName, command.url);
 			} else if (command.type.equals("delete")) {
@@ -277,6 +280,41 @@ public class Server extends Process {
 			System.out.println("Server" + me
 					+ ": invalid CreationWriteResponse from server" + msg.src
 					+ " msg type=" + msg.getClass());
+		}
+	}
+
+	public void retire() {
+		this.active = false;
+		retirementWrite();
+		
+		try {
+		    Thread.sleep(10);
+		} catch(InterruptedException ex) {
+		    Thread.currentThread().interrupt();
+		}
+		
+		env.removeServer(me);
+	}
+	
+	
+	private void retirementWrite() {
+		Command cmd = new Command("retire", me);
+		cmd.server = me;
+		cmd.accept_stamp = (++TS);
+		
+		V.put(me, TS);
+		tentative.add(cmd);
+		
+		antiEntropy();
+		
+		// primary server write stable
+		if (me == 0) {
+			cmd.CSN = CSN++;
+			commit(cmd);
+			tentative.remove(cmd);
+			committed.add(cmd);
+			V_commit.put(cmd.server, cmd.accept_stamp);
+			antiEntropy();
 		}
 	}
 }

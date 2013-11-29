@@ -39,17 +39,18 @@ public class Command implements Comparable {
 	}
 
 	public String toString(){
-		String s = "Command('";
-		if (type.equals("create")) {
-			s += "create server" + server;
+		String s = "Command(";
+		if (type.equals("create") || type.equals("retire")) {
+			s += "'" + type + " server" + server + "' ,accept_stamp="
+					+ accept_stamp + " ,CSN=" + CSN + ")";
 		} else {
 			s += "client=" + client + ", cmd_id=" + cmd_id + ", " + "server="
 					+ server + " ,accept_stamp=" + accept_stamp + " ,CSN="
 					+ CSN + " '" + type + " " + songName;
 			if (url != null)
 				s += " " + url.toString();
+			s += "')";
 		}
-		s += "')";
 		return s;
 	}
 

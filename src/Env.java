@@ -9,7 +9,7 @@ public class Env {
 	
 	public static boolean pause = false;
 	
-	public final static boolean DEBUG = false;
+	public final static boolean DEBUG = true;
 	
 	private static boolean TEST_1 = false;
 	
@@ -48,7 +48,6 @@ public class Env {
 		}
 		
 		proc.start();
-		proc.active = true;
 	}
 
 	synchronized void removeServer(int pid){
@@ -141,8 +140,8 @@ public class Env {
 	}
 
 	public void leave(int server) {
-		// TODO server retirement
-		
+		Server s = servers.get(server);
+		s.retire();
 	}
 
 }
