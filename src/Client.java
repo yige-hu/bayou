@@ -40,7 +40,7 @@ public class Client extends Process {
 		boolean RYW = true;
 		Server s = env.servers.get(server);
 		for (int key : write_vector.keySet()) {
-			if (s.V.get(key) == null || write_vector.get(key) > s.V.get(key)) {
+			if (s.V_commit.get(key) == null || write_vector.get(key) > s.V_commit.get(key)) {
 				RYW = false;
 			}
 		}
@@ -63,7 +63,7 @@ public class Client extends Process {
 		boolean RYW = true;
 		Server s = env.servers.get(server);
 		for (int key : write_vector.keySet()) {
-			if (s.V.get(key) == null || write_vector.get(key) > s.V.get(key)) {
+			if (s.V_commit.get(key) == null || write_vector.get(key) > s.V_commit.get(key)) {
 				RYW = false;
 			}
 		}

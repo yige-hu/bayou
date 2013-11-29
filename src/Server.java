@@ -15,6 +15,7 @@ public class Server extends Process {
 	PlayList playList = new PlayList();
 	
 	Map<Integer, Integer> V = new HashMap<Integer, Integer>();
+	Map<Integer, Integer> V_commit = new HashMap<Integer, Integer>();
 	int TS = 0;
 	int CSN = 0;
 
@@ -57,6 +58,7 @@ public class Server extends Process {
 					commit(m.command);
 					tentative.remove(m.command);
 					committed.add(m.command);
+					V_commit.put(m.command.server, m.command.accept_stamp);
 					antiEntropy();
 				}
 			}
@@ -79,6 +81,7 @@ public class Server extends Process {
 					commit(m.command);
 					tentative.remove(m.command);
 					committed.add(m.command);
+					V_commit.put(m.command.server, m.command.accept_stamp);
 					antiEntropy();
 				}
 			}
@@ -93,6 +96,7 @@ public class Server extends Process {
 				commit(m.command);
 				tentative.remove(m.command);
 				committed.add(m.command);
+				V_commit.put(m.command.server, m.command.accept_stamp);
 				antiEntropy();
 			}
 			
@@ -122,6 +126,7 @@ public class Server extends Process {
 					commit(m.command);
 					tentative.remove(m.command);
 					committed.add(m.command);
+					V_commit.put(m.command.server, m.command.accept_stamp);
 					antiEntropy();
 				}
 			}
@@ -137,15 +142,13 @@ public class Server extends Process {
 		try {
 			if (command.type.equals("add")) {
 				playList.addSong(command.songName, command.url);
+			} else if (command.type.equals("delete")) {
+				playList.deleteSong(command.songName);
+			} else if (command.type.equals("edit")) {
+				playList.editSong(command.songName, command.url);
 			} else if (command.type.equals("get")) {
 				String songInfo = playList.getSongInfo(command.songName);
 				System.out.println("Get response: " + songInfo);
-			} else if (command.type.equals("delete")) {
-				playList.deleteSong(command.songName);
-			}
-
-			else if (command.type.equals("edit")) {
-				playList.editSong(command.songName, command.url);
 			}
 		} catch (Exception e) {
 			System.out.println("Exception when committing cmd='"
