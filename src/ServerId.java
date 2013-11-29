@@ -1,5 +1,6 @@
 
 public class ServerId {
+	int num;
 	ServerId Sk;
 	int Tki;
 

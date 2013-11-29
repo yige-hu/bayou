@@ -7,11 +7,13 @@ public class Command implements Comparable {
 	
 	int server;
 	int accept_stamp;
-	int CSN = 2147483647;
+	int CSN = Integer.MAX_VALUE;
 	
 	String type;
 	String songName;
 	URL url;
+	
+	ServerId serverId;
 
 	public Command(int client, int cmd_id, String type, String songName, URL url){
 		this.client = client;
@@ -28,9 +30,10 @@ public class Command implements Comparable {
 		this.songName = songName;
 	}
 	
-	public Command(String type, int server) {
+	public Command(String type, int server, ServerId serverId) {
 		this.type = type;
 		this.server = server;
+		this.serverId = serverId;
 	}
 
 	public boolean equals(Object o) {

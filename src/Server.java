@@ -27,13 +27,16 @@ public class Server extends Process {
 		this.env = env;
 		this.me = me;
 		
+		this.serverId = null;
+		
 		env.addServer(me, this);
 	}
 	
 	public Server(Env env, int me, int creator) {
 		this.env = env;
 		this.me = me;
-//		this.serverId = new ServerId(Sk, Tki);
+		
+		
 		
 		env.addServerCreation(me, this, creator);
 	}
@@ -61,6 +64,7 @@ public class Server extends Process {
 				
 				ClientWriteMessage m = (ClientWriteMessage) msg;
 				m.command.server = me;
+				m.command.serverId = serverId;
 				m.command.accept_stamp = (++TS);
 				V.put(me, TS);
 				tentative.add(m.command);
@@ -71,7 +75,7 @@ public class Server extends Process {
 				
 				// primary server write stable
 				if (me == 0) {
-					m.command.CSN = CSN++;
+					m.command.CSN = (++CSN);
 					commit(m.command);
 					tentative.remove(m.command);
 					committed.add(m.command);
@@ -84,6 +88,7 @@ public class Server extends Process {
 				
 				ClientWriteOnlyMessage m = (ClientWriteOnlyMessage) msg;
 				m.command.server = me;
+				m.command.serverId = serverId;
 				m.command.accept_stamp = (++TS);
 				V.put(me, TS);
 				tentative.add(m.command);
@@ -94,7 +99,7 @@ public class Server extends Process {
 				
 				// primary server write stable
 				if (me == 0) {
-					m.command.CSN = CSN++;
+					m.command.CSN = (++CSN);
 					commit(m.command);
 					tentative.remove(m.command);
 					committed.add(m.command);
@@ -120,7 +125,8 @@ public class Server extends Process {
 			else if  (msg instanceof WriteNotification) {
 				WriteNotification m = (WriteNotification) msg;
 				
-				if (V.get(m.command.server) != null && V.get(m.command.server) >= m.command.accept_stamp) {
+//				if (V.get(m.command.server) != null && V.get(m.command.server) >= m.command.accept_stamp) {
+				if (getCompleteV(m.command.serverId) >= m.command.accept_stamp) {
 					continue;
 				}
 
@@ -139,7 +145,7 @@ public class Server extends Process {
 				
 				// primary server write stable
 				if (me == 0) {			
-					m.command.CSN = CSN++;
+					m.command.CSN = (++CSN);
 					commit(m.command);
 					tentative.remove(m.command);
 					committed.add(m.command);
@@ -162,7 +168,7 @@ public class Server extends Process {
 				
 				// primary server write stable
 				if (me == 0) {
-					m.command.CSN = CSN++;
+					m.command.CSN = (++CSN);
 					commit(m.command);
 					tentative.remove(m.command);
 					committed.add(m.command);
@@ -269,13 +275,14 @@ public class Server extends Process {
 	}
 
 	public void creationWrite(int creator) {
-		Command cmd = new Command("create", me);
+		Command cmd = new Command("create", me, serverId);
 		sendServerMessage(creator, new CreationWriteMessage(me, cmd));
 		Message msg = getNextMessage();
 		if (msg instanceof CreationWriteResponse) {
 			CreationWriteResponse m = (CreationWriteResponse) msg;
 			this.TS = m.TS;
 			this.connected_servers.addAll(m.connected_servers);
+			this.serverId = new ServerId(env.servers.get(creator).serverId, TS);
 		} else {
 			System.out.println("Server" + me
 					+ ": invalid CreationWriteResponse from server" + msg.src
@@ -298,8 +305,9 @@ public class Server extends Process {
 	
 	
 	private void retirementWrite() {
-		Command cmd = new Command("retire", me);
+		Command cmd = new Command("retire", me, serverId);
 		cmd.server = me;
+		cmd.serverId = serverId;
 		cmd.accept_stamp = (++TS);
 		
 		V.put(me, TS);
@@ -309,12 +317,24 @@ public class Server extends Process {
 		
 		// primary server write stable
 		if (me == 0) {
-			cmd.CSN = CSN++;
+			cmd.CSN = (++CSN);
 			commit(cmd);
 			tentative.remove(cmd);
 			committed.add(cmd);
 			V_commit.put(cmd.server, cmd.accept_stamp);
 			antiEntropy();
+		}
+	}
+	
+	private int getCompleteV(ServerId serverId) {
+		if (serverId != null && V.containsKey(serverId.num)) {
+			return V.get(serverId.num);
+		} else if (serverId == null) {
+			return Integer.MAX_VALUE;
+		} else if (getCompleteV(serverId.Sk)>=serverId.Tki) {
+			return Integer.MAX_VALUE;
+		} else {
+			return Integer.MIN_VALUE;
 		}
 	}
 }
