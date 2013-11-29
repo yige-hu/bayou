@@ -115,14 +115,14 @@ public class CmdReader extends Thread {
 					else if (cmdType.equals("delete")) {
 						Client c = env.clients.get(client);
 						Command cmd = new Command(client, c.num_cmd++, cmdType, songName);
-						c.writeRequest(cmd);
+						c.readWriteRequest(cmd);
 					}
 					
 					else if (cmdType.equals("edit")) {
 						String url = t.nextToken();
 						Client c = env.clients.get(client);
 						Command cmd = new Command(client, c.num_cmd++, cmdType, songName, new URL(url));
-						c.writeRequest(cmd);
+						c.readWriteRequest(cmd);
 					}
 					
 					else if (cmdType.equals("get")) {

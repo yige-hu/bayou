@@ -36,14 +36,26 @@ public class Client extends Process {
 		
 	}
 
-	public void writeRequest(Command cmd) {
-		sendServerMessage(server, new ClientWriteMessage(me, cmd));
-		Message msg = getNextMessage();
-		if (msg instanceof WidResponseMessage) {
-			WidResponseMessage m = (WidResponseMessage) msg;
-			write_vector.put(server, m.TS);
+	public void readWriteRequest(Command cmd) {
+		boolean RYW = true;
+		Server s = env.servers.get(server);
+		for (int key : write_vector.keySet()) {
+			if (s.V.get(key) == null || write_vector.get(key) > s.V.get(key)) {
+				RYW = false;
+			}
+		}
+		if (RYW) {
+			sendServerMessage(server, new ClientWriteMessage(me, cmd));
+			Message msg = getNextMessage();
+			if (msg instanceof WidResponseMessage) {
+				WidResponseMessage m = (WidResponseMessage) msg;
+				write_vector.put(server, m.TS);
+			} else {
+				System.out.println("Client" + me
+						+ ": invalid WidResponseMessage from server" + server);
+			}
 		} else {
-			System.out.println("Client" + me + ": invalid WidResponseMessage from server" + server);
+			System.out.println("RYW=false, please edit later.");
 		}
 	}
 
@@ -56,7 +68,7 @@ public class Client extends Process {
 			}
 		}
 		if (RYW) {
-		sendServerMessage(server, new ClientReadOnlyMessage(me, cmd));
+			sendServerMessage(server, new ClientReadOnlyMessage(me, cmd));
 		} else {
 			System.out.println("RYW=false, please read later.");
 		}

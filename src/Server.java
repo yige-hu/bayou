@@ -43,6 +43,7 @@ public class Server extends Process {
 				ClientWriteMessage m = (ClientWriteMessage) msg;
 				m.command.server = me;
 				m.command.accept_stamp = (++TS);
+				V.put(me, TS);
 				tentative.add(m.command);
 				
 				sendClientMessage(m.src, new WidResponseMessage(me, TS));
@@ -64,6 +65,7 @@ public class Server extends Process {
 				ClientWriteOnlyMessage m = (ClientWriteOnlyMessage) msg;
 				m.command.server = me;
 				m.command.accept_stamp = (++TS);
+				V.put(me, TS);
 				tentative.add(m.command);
 				
 				sendClientMessage(m.src, new WidResponseMessage(me, TS));
