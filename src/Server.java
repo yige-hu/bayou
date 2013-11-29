@@ -1,16 +1,17 @@
-import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 
 public class Server extends Process {
 	
 	Set<Integer> connected_servers = new HashSet<Integer>();
 	
-	Set<Command> tentative = new HashSet<Command>();
-	Set<Command> committed = new HashSet<Command>();
+	Set<Command> tentative = new TreeSet<Command>();
+	Set<Command> committed = new TreeSet<Command>();
+	
 	PlayList playList = new PlayList();
 	
 	Map<Integer, Integer> V = new HashMap<Integer, Integer>();
@@ -53,7 +54,7 @@ public class Server extends Process {
 				// primary server write stable
 				if (me == 0) {
 					m.command.CSN = CSN++;
-					commitWrite(m.command);
+					commit(m.command);
 					tentative.remove(m.command);
 					committed.add(m.command);
 					antiEntropy();
@@ -75,7 +76,7 @@ public class Server extends Process {
 				// primary server write stable
 				if (me == 0) {
 					m.command.CSN = CSN++;
-					commitWriteOnly(m.command);
+					commit(m.command);
 					tentative.remove(m.command);
 					committed.add(m.command);
 					antiEntropy();
@@ -84,12 +85,12 @@ public class Server extends Process {
 			
 			else if  (msg instanceof ClientReadOnlyMessage) {
 				ClientReadOnlyMessage m = (ClientReadOnlyMessage) msg;
-				commitReadOnly(m.command);
+				commit(m.command);
 			}
 			
 			else if  (msg instanceof CommitNotification) {
 				CommitNotification m = (CommitNotification) msg;
-				commitWrite(m.command);
+				commit(m.command);
 				tentative.remove(m.command);
 				committed.add(m.command);
 				antiEntropy();
@@ -118,7 +119,7 @@ public class Server extends Process {
 				// primary server write stable
 				if (me == 0) {			
 					m.command.CSN = CSN++;
-					commitWrite(m.command);
+					commit(m.command);
 					tentative.remove(m.command);
 					committed.add(m.command);
 					antiEntropy();
@@ -132,33 +133,14 @@ public class Server extends Process {
 		
 	}
 
-	private void commitWriteOnly(Command command) {
+	private void commit(Command command) {
 		try {
 			if (command.type.equals("add")) {
 				playList.addSong(command.songName, command.url);
-			}
-		} catch (Exception e) {
-			System.out.println("Exception when committing write: "
-					+ e.toString());
-		}
-	}
-
-	private void commitReadOnly(Command command) {
-		try {
-			if (command.type.equals("get")) {
+			} else if (command.type.equals("get")) {
 				String songInfo = playList.getSongInfo(command.songName);
 				System.out.println("Get response: " + songInfo);
-			}
-		} catch (Exception e) {
-			System.out.println("Exception when committing read only: "
-					+ e.toString());
-		}
-		
-	}
-
-	private void commitWrite(Command command) {
-		try {
-			if (command.type.equals("delete")) {
+			} else if (command.type.equals("delete")) {
 				playList.deleteSong(command.songName);
 			}
 
@@ -166,8 +148,8 @@ public class Server extends Process {
 				playList.editSong(command.songName, command.url);
 			}
 		} catch (Exception e) {
-			System.out.println("Exception when committing write: "
-					+ e.toString());
+			System.out.println("Exception when committing cmd='"
+					+ command + ", " + e.toString());
 		}
 	}
 	
@@ -197,7 +179,7 @@ public class Server extends Process {
 					}
 				}
 			}
-
+			
 			// send all the tentative writes
 			for (Command cmd : tentative) {
 				Integer VC = server.V.get(cmd.server);

@@ -1,7 +1,7 @@
 import java.net.URL;
 
 
-public class Command {
+public class Command implements Comparable {
 	int client;
 	int cmd_id;
 	
@@ -36,5 +36,17 @@ public class Command {
 	public String toString(){
 		return "Command(client=" + client + ", cmd_id=" + cmd_id + ", " +
 				"server=" + server + " ,accept_stamp=" + accept_stamp + " ,CSN=" + CSN + " '" + type + " " + songName + "')";
+	}
+
+	@Override
+	public int compareTo(Object o) {
+		Command other = (Command) o;
+		if (this.CSN != other.CSN) {
+			return this.CSN - other.CSN;
+		} else if (this.server != other.server) {
+			return this.server - other.server;
+		} else {
+			return this.accept_stamp - other.accept_stamp;
+		}
 	}
 }

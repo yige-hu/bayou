@@ -9,7 +9,7 @@ public class Env {
 	
 	public static boolean pause = false;
 	
-	public final static boolean DEBUG = true;
+	public final static boolean DEBUG = false;
 	
 	private static boolean TEST_1 = false;
 	
