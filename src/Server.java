@@ -58,6 +58,14 @@ public class Server extends Process {
 			
 			while (Env.pause);
 			
+			if (Env.SLOW_MODE) {
+				try {
+				    Thread.sleep(1000);
+				} catch(InterruptedException ex) {
+				    Thread.currentThread().interrupt();
+				}
+			}
+			
 			Message msg = getNextMessage();
 
 			if (msg instanceof ClientWriteMessage) {

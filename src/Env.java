@@ -11,6 +11,7 @@ public class Env {
 	
 	public static final boolean DEBUG = false;
 	public static final boolean DEBUG_RETIREMENT = false;
+	public static final boolean SLOW_MODE = false;
 	
 	private static boolean TEST_1 = false;
 	
