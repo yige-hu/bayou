@@ -196,11 +196,6 @@ public class Server extends Process {
 				V.put(m.command.server, m.command.accept_stamp);
 				tentative.add(m.command);
 				
-				// if retirement request, respond
-                if (m.command.type.equals("retire")) {
-                        sendServerMessage(m.command.server, new RetireWriteResponse(me, m.command));
-                }
-				
 				antiEntropy();
 				
 				// primary server write stable
@@ -212,6 +207,11 @@ public class Server extends Process {
 					V_commit.put(m.command.server, m.command.accept_stamp);
 					antiEntropy();
 				}
+				
+				// if retirement request, respond
+                if (m.command.type.equals("retire")) {
+                        sendServerMessage(m.command.server, new RetireWriteResponse(me, m.command));
+                }
 			}
 			
 			else if (msg instanceof CreationWriteMessage) {
