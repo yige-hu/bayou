@@ -63,7 +63,8 @@ class CreationWriteResponse extends Message {
 }
 
 class RetireWriteResponse extends Message {
-	public RetireWriteResponse(int src) {
-		this.src = src;
+	Command command;
+	public RetireWriteResponse(int src, Command command){
+		this.src = src; this.command = command;
 	}
 }

@@ -54,6 +54,23 @@ public class Server extends Process {
 			
 			if (!active) {
 				System.out.println("server" + me + ": active=false, enter retirement.");
+				
+				Message msg;
+				while (! ((msg = getNextMessage()) instanceof RetireWriteResponse));
+				RetireWriteResponse m = (RetireWriteResponse) msg;
+				
+				// primary server write stable
+				if (me == 0) {
+					m.command.CSN = (++CSN);
+					commit(m.command);
+					tentative.remove(m.command);
+					committed.add(m.command);
+					V_commit.put(m.command.server, m.command.accept_stamp);
+					antiEntropy();
+				}
+				
+				env.removeServer(me);
+				
 				break;
 			}
 						
@@ -136,7 +153,7 @@ public class Server extends Process {
 				
 				// if retirement request, respond
                 if (m.command.type.equals("retire")) {
-                        sendServerMessage(m.command.server, new RetireWriteResponse(me));
+                        sendServerMessage(m.command.server, new RetireWriteResponse(me, m.command));
                 }
                 
                 if (Env.DEBUG_RETIREMENT) {
@@ -352,20 +369,6 @@ public class Server extends Process {
 		tentative.add(cmd);
 		
 		antiEntropy();
-		
-		while (! (getNextMessage() instanceof RetireWriteResponse));
-		
-		// primary server write stable
-		if (me == 0) {
-			cmd.CSN = (++CSN);
-			commit(cmd);
-			tentative.remove(cmd);
-			committed.add(cmd);
-			V_commit.put(cmd.server, cmd.accept_stamp);
-			antiEntropy();
-		}
-		
-		env.removeServer(me);
 	}
 	
 	private int getCompleteV(ServerId serverId) {
