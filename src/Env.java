@@ -41,14 +41,6 @@ public class Env {
 	synchronized public void addServerCreation(int pid, Server proc, int creator) {
 		servers.put(pid, proc);
 		proc.creationWrite(creator);
-		
-		try {
-		    Thread.sleep(10);
-		} catch(InterruptedException ex) {
-		    Thread.currentThread().interrupt();
-		}
-		
-		proc.start();
 	}
 
 	synchronized void removeServer(int pid){

@@ -134,6 +134,22 @@ public class Server extends Process {
 			else if  (msg instanceof WriteNotification) {
 				WriteNotification m = (WriteNotification) msg;
 				
+				// if retirement request, respond
+                if (m.command.type.equals("retire")) {
+                        sendServerMessage(m.src, new RetireWriteResponse(me));
+                }
+                
+                if (Env.DEBUG_RETIREMENT) {
+                    if (m.command.type.equals("retire")) {
+                            System.out.println("server" + me
+                                            + " get retirement serverId="
+                                            + m.command.serverId + ", acc_stp="
+                                            + m.command.accept_stamp + ", V[Si]="
+                                            + V.get(m.command.server) + " CompleteV[Sk]="
+                                            + getCompleteV(m.command.serverId.Sk));
+                    }
+                }
+				
 				// original version vector: V
 				//if (V.get(m.command.server) != null && V.get(m.command.server) >= m.command.accept_stamp) {
 				
@@ -188,7 +204,7 @@ public class Server extends Process {
 				tentative.add(m.command);
 				
 				this.connected_servers.add(m.src);
-				sendServerMessage(m.src, new CreationWriteResponse(me, TS, connected_servers, this.V));
+				sendServerMessage(m.src, new CreationWriteResponse(me, serverId, TS, connected_servers, this.V));
 				
 				antiEntropy();
 				
@@ -307,10 +323,12 @@ public class Server extends Process {
 		if (msg instanceof CreationWriteResponse) {
 			CreationWriteResponse m = (CreationWriteResponse) msg;
 			this.connected_servers.addAll(m.connected_servers);
-			this.serverId = new ServerId(env.servers.get(creator).serverId, m.TS, me);
+			this.serverId = new ServerId(m.creatorId, m.TS, me);
 			cmd.serverId = this.serverId;
 			this.V.putAll(m.V);
 			this.TS = m.TS;
+			
+			this.start();
 		} else {
 			System.out.println("Server" + me
 					+ ": invalid CreationWriteResponse from server" + msg.src
@@ -342,6 +360,8 @@ public class Server extends Process {
 		tentative.add(cmd);
 		
 		antiEntropy();
+		
+		while (! (getNextMessage() instanceof RetireWriteResponse));
 		
 		// primary server write stable
 		if (me == 0) {
