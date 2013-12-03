@@ -58,7 +58,13 @@ class CreationWriteMessage extends Message {
 class CreationWriteResponse extends Message {
 	ServerId creatorId; int TS; Set<Integer> connected_servers; Map<Integer, Integer> V;
 	public CreationWriteResponse(int src, ServerId creatorId, int TS, Set<Integer> connected_servers, Map<Integer, Integer> V){
-		this.creatorId = creatorId; this.src = src; this.TS = TS; this.connected_servers = connected_servers; this.V = V;
+		this.src = src; this.creatorId = creatorId; this.TS = TS; this.connected_servers = connected_servers; this.V = V;
+	}
+}
+
+class RetireWriteResponse extends Message {
+	public RetireWriteResponse(int src){
+		this.src = src;
 	}
 }
 

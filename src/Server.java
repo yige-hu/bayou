@@ -139,6 +139,11 @@ public class Server extends Process {
 			else if  (msg instanceof WriteNotification) {
 				WriteNotification m = (WriteNotification) msg;
 				
+				// if retirement request, respond
+				if (m.command.type.equals("retire")) {
+					sendServerMessage(m.src, new RetireWriteResponse(me));
+				}
+				
 				// original version vector: V
 				//if (V.get(m.command.server) != null && V.get(m.command.server) >= m.command.accept_stamp) {
 				
@@ -260,7 +265,6 @@ public class Server extends Process {
 			
 			//Server server = env.servers.get(R);
 			sendStateReqMessage(R, new StateRequestMessage(me));
-			System.out.println("server" + me + ": wait for state resp...");
 			Message msg = getNextMessage();
 			if (msg instanceof StateResponseMessage) {
 				StateResponseMessage m = (StateResponseMessage) msg;
@@ -378,6 +382,8 @@ public class Server extends Process {
 		tentative.add(cmd);
 		
 		antiEntropy();
+		
+		while (! (getNextMessage() instanceof RetireWriteResponse));
 		
 		// primary server write stable
 		if (me == 0) {
