@@ -188,7 +188,7 @@ public class Server extends Process {
 				tentative.add(m.command);
 				
 				this.connected_servers.add(m.src);
-				sendServerMessage(m.src, new CreationWriteResponse(me, TS, connected_servers, this.V));
+				sendServerMessage(m.src, new CreationWriteResponse(serverId, me, TS, connected_servers, this.V));
 				
 				antiEntropy();
 				
@@ -307,7 +307,7 @@ public class Server extends Process {
 		if (msg instanceof CreationWriteResponse) {
 			CreationWriteResponse m = (CreationWriteResponse) msg;
 			this.connected_servers.addAll(m.connected_servers);
-			this.serverId = new ServerId(env.servers.get(creator).serverId, m.TS, me);
+			this.serverId = new ServerId(m.creatorId, m.TS, me);
 			cmd.serverId = this.serverId;
 			this.V.putAll(m.V);
 			this.TS = m.TS;
