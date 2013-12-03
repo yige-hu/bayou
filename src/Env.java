@@ -12,6 +12,7 @@ public class Env {
 	
 	public static final boolean DEBUG = false;
 	public static final boolean DEBUG_RETIREMENT = false;
+	public static final boolean DEBUG_ENTROPY = true;
 	public static final boolean SLOW_MODE = false;
 	
 	private static boolean TEST_1 = false;
@@ -33,16 +34,20 @@ public class Env {
 		}
 	}
 	
-	synchronized void sendStateReqMessage(int dst, Message msg){
+	void sendServerStateMessage(int dst, Message msg){
+		Process p = servers.get(dst);
+		if (p != null) {
+			p.deliverState(msg);
+		} else {
+			System.out.println("server not exists: server" + dst);
+		}
+	}
+	
+	void sendStateReqMessage(int dst, Message msg){
 		Process p = server_state_reponders.get(dst);
 		if (p != null) {
 			p.deliver(msg);
 		}
-	}
-	
-	synchronized public void addServerCreation(int pid, Server proc, int creator) {
-		servers.put(pid, proc);
-		proc.creationWrite(creator);
 	}
 	
 	void sendServerCreateRespMessage(int dst, Message msg){
@@ -52,6 +57,11 @@ public class Env {
 		} else {
 			System.out.println("server not exists: server" + dst);
 		}
+	}
+	
+	synchronized public void addServerCreation(int pid, Server proc, int creator) {
+		servers.put(pid, proc);
+		proc.creationWrite(creator);
 	}
 	
 	synchronized void addServer(int pid, Server proc){

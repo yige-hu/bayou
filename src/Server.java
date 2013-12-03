@@ -258,6 +258,8 @@ public class Server extends Process {
 	}
 	
 	synchronized private void antiEntropy() {
+		System.out.println(">>>");
+		
 		for (int R : connected_servers) {
 			if (R == me) continue;
 			
@@ -265,7 +267,13 @@ public class Server extends Process {
 			
 			//Server server = env.servers.get(R);
 			sendStateReqMessage(R, new StateRequestMessage(me));
-			Message msg = getNextMessage();
+			if (Env.DEBUG_ENTROPY) {
+				System.out.println("server" + me + ": antiEntropy wait... for server" + R);
+			}
+			Message msg = getNextStateMessage();
+			if (Env.DEBUG_ENTROPY) {
+				System.out.println("server" + me + ": antiEntropy get. from server" + R);
+			}
 			if (msg instanceof StateResponseMessage) {
 				StateResponseMessage m = (StateResponseMessage) msg;
 				R_V = m.V;
@@ -278,6 +286,8 @@ public class Server extends Process {
 				return;
 			}
 			
+			System.out.println("+++");
+			
 			// send committed writes that R does not know about
 			if (R_committed.size() < this.committed.size()) {
 				if (Env.DEBUG) {
@@ -287,17 +297,16 @@ public class Server extends Process {
 				for (Command cmd : committed) {
 					if (!R_committed.contains(cmd)) {
 						if (R_tentative.contains(cmd)) {
-							sendServerMessage(R, new CommitNotification(me,
-									cmd));
+							 sendServerMessage(R, new CommitNotification(me, cmd));
 						} else {
-							sendServerMessage(R,
-									new WriteNotification(me, cmd));
-							sendServerMessage(R, new CommitNotification(me,
-									cmd));
+							 sendServerMessage(R, new WriteNotification(me, cmd));
+							 sendServerMessage(R, new CommitNotification(me, cmd));
 						}
 					}
 				}
 			}
+			
+			System.out.println("---");
 			
 			// send all the tentative writes
 			for (Command cmd : tentative) {
@@ -312,6 +321,8 @@ public class Server extends Process {
 				}
 			}
 		}
+		
+		System.out.println("<<<");
 	}
 
 	synchronized public void disconnect(int j) {
@@ -341,8 +352,8 @@ public class Server extends Process {
 	public void creationWrite(int creator) {
 		Command cmd = new Command("create", me, serverId);
 		sendServerMessage(creator, new CreationWriteMessage(me, cmd));
-		Message msg = getNextMessage();
-		if (msg instanceof CreationWriteResponse) {
+		Message msg;
+		while (! ((msg = getNextMessage()) instanceof CreationWriteResponse));
 			CreationWriteResponse m = (CreationWriteResponse) msg;
 			this.connected_servers.addAll(m.connected_servers);
 			this.serverId = new ServerId(m.creatorId, m.TS, me);
@@ -351,11 +362,7 @@ public class Server extends Process {
 			this.TS = m.TS;
 			
 			this.start();
-		} else {
-			System.out.println("Server" + me
-					+ ": invalid CreationWriteResponse from server" + msg.src
-					+ " msg type=" + msg.getClass());
-		}
+
 	}
 
 	public void retire() {

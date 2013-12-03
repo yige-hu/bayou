@@ -2,6 +2,7 @@
 public abstract class Process extends Thread {
 	int me;
 	Queue<Message> inbox = new Queue<Message>();
+	Queue<Message> inbox_state = new Queue<Message>();
 	Env env;
 
 	abstract void body();
@@ -9,8 +10,16 @@ public abstract class Process extends Thread {
 	Message getNextMessage(){
 		return inbox.bdequeue();
 	}
+	
+	Message getNextStateMessage(){
+		return inbox_state.bdequeue();
+	}
 
 	void sendServerMessage(int dst, Message msg){
+		env.sendServerMessage(dst, msg);
+	}
+	
+	void sendServerStateMessage(int dst, Message msg){
 		env.sendServerMessage(dst, msg);
 	}
 	
@@ -28,5 +37,9 @@ public abstract class Process extends Thread {
 
 	void deliver(Message msg){
 		inbox.enqueue(msg);
+	}
+	
+	void deliverState(Message msg){
+		inbox_state.enqueue(msg);
 	}
 }

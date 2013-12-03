@@ -27,7 +27,7 @@ public class ServerStateResponder extends Process {
 				if (Env.DEBUG) {
 					System.out.println("StateResponder" + me + ": get req from server" + m.src);
 				}
-				sendServerMessage(m.src, new StateResponseMessage(me, server.V, server.committed, server.tentative));
+				sendServerStateMessage(m.src, new StateResponseMessage(me, server.V, server.committed, server.tentative));
 			}
 			else {
 				System.err.println("Server" + me + ": unknown msg type" + msg.getClass());
