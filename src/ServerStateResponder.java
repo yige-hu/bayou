@@ -11,6 +11,11 @@ public class ServerStateResponder extends Process {
 		env.addServerStateResponder(me, this);
 	}
 	
+	public void run(){
+		body();
+		env.removeServerStateResponder(me);
+	}
+	
 	@Override
 	void body() {
 		System.out.println("Here I am: responder" + me);

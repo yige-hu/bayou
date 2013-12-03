@@ -33,9 +33,8 @@ public class Server extends Process {
 		this.serverId = new ServerId(null, TS, me);
 		
 		resp = new ServerStateResponder(env, me, this);
-		resp.start();
-		//env.addServer(me, this);
-		//env.addServerStateResponder(me, resp);
+		
+		env.addServer(me, this);
 	}
 	
 	public Server(Env env, int me, int creator) {
@@ -44,11 +43,6 @@ public class Server extends Process {
 		connected_servers.add(me);
 		
 		new ServerStateResponder(env, me, this);
-		try {
-		    Thread.sleep(10);
-		} catch(InterruptedException ex) {
-		    Thread.currentThread().interrupt();
-		}
 		
 		env.addServerCreation(me, this, creator);
 	}
@@ -193,13 +187,26 @@ public class Server extends Process {
 			
 			else if (msg instanceof CreationWriteMessage) {
 				
+				if (Env.DEBUG) {
+					System.out.println("server" + me + ": " + "get CreationWriteMessage.");
+				}
+				
 				CreationWriteMessage m = (CreationWriteMessage) msg;
 				m.command.accept_stamp = (++TS);
 				V.put(m.command.server, TS);
 				tentative.add(m.command);
 				
 				this.connected_servers.add(m.src);
-				sendServerMessage(m.src, new CreationWriteResponse(me, serverId, TS, connected_servers, this.V));
+				
+				if (Env.DEBUG) {
+					System.out.println("server" + me + ": " + "sending CreationWriteResponse to server" + m.src);
+				}
+				
+				sendServerCreateRespMessage(m.src, new CreationWriteResponse(me, serverId, TS, connected_servers, this.V));
+				
+				if (Env.DEBUG) {
+					System.out.println("server" + me + ": " + "sent CreationWriteResponse.");
+				}
 				
 				antiEntropy();
 				
@@ -338,6 +345,8 @@ public class Server extends Process {
 			cmd.serverId = this.serverId;
 			this.V.putAll(m.V);
 			this.TS = m.TS;
+			
+			this.start();
 		} else {
 			System.out.println("Server" + me
 					+ ": invalid CreationWriteResponse from server" + msg.src

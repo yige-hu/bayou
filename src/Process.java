@@ -14,6 +14,10 @@ public abstract class Process extends Thread {
 		env.sendServerMessage(dst, msg);
 	}
 	
+	void sendServerCreateRespMessage(int dst, Message msg){
+		env.sendServerCreateRespMessage(dst, msg);
+	}
+	
 	void sendClientMessage(int dst, Message msg){
 		env.sendClientMessage(dst, msg);
 	}

@@ -44,13 +44,22 @@ public class Env {
 		servers.put(pid, proc);
 		proc.creationWrite(creator);
 		
-		try {
-		    Thread.sleep(10);
-		} catch(InterruptedException ex) {
-		    Thread.currentThread().interrupt();
+//		try {
+//		    Thread.sleep(10);
+//		} catch(InterruptedException ex) {
+//		    Thread.currentThread().interrupt();
+//		}
+//		
+//		proc.start();
+	}
+	
+	void sendServerCreateRespMessage(int dst, Message msg){
+		Process p = servers.get(dst);
+		if (p != null) {
+			p.deliver(msg);
+		} else {
+			System.out.println("server not exists: server" + dst);
 		}
-		
-		proc.start();
 	}
 	
 	synchronized void addServer(int pid, Server proc){
@@ -81,27 +90,16 @@ public class Env {
 	}
 
 	void run(String[] args){
-
-		ServerStateResponder resp = new ServerStateResponder(this, 0, null);
-		resp.start();
 		
 		// default 3 servers
-		//Server s0 = new Server(this, 0);
-		try {
-		    Thread.sleep(100);
-		} catch(InterruptedException ex) {
-		    Thread.currentThread().interrupt();
-		}
-		//join(1);
-		try {
-		    Thread.sleep(100);
-		} catch(InterruptedException ex) {
-		    Thread.currentThread().interrupt();
-		}
+		Server s0 = new Server(this, 0);
+
+		join(1);
+
 		//join(2);
 		
 		// default 1 client, connected to Server0
-		//Client c = new Client(this, this.clients.size());
+		Client c = new Client(this, this.clients.size());
 		
 		CmdReader reader = new CmdReader(this);
 		reader.run();
