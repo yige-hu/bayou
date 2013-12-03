@@ -43,14 +43,6 @@ public class Env {
 	synchronized public void addServerCreation(int pid, Server proc, int creator) {
 		servers.put(pid, proc);
 		proc.creationWrite(creator);
-		
-//		try {
-//		    Thread.sleep(10);
-//		} catch(InterruptedException ex) {
-//		    Thread.currentThread().interrupt();
-//		}
-//		
-//		proc.start();
 	}
 	
 	void sendServerCreateRespMessage(int dst, Message msg){
@@ -96,7 +88,7 @@ public class Env {
 
 		join(1);
 
-		//join(2);
+		join(2);
 		
 		// default 1 client, connected to Server0
 		Client c = new Client(this, this.clients.size());
