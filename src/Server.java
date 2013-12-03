@@ -26,7 +26,8 @@ public class Server extends Process {
 	public Server(Env env, int me) {
 		this.env = env;
 		this.me = me;
-		connected_servers.add(me);
+		this.connected_servers.add(me);
+		this.V.put(me, TS);
 		
 		this.serverId = new ServerId(null, TS, me);
 		
@@ -149,16 +150,19 @@ public class Server extends Process {
 				
 				// complete version vector: CompleteV
 				if (getCompleteV(m.command.serverId) >= m.command.accept_stamp) {
+					if (Env.DEBUG) {
+						System.out.println("Server" + me
+								+ " skip WriteNotification src=" + m.src + " cmd.server=" + m.command.server
+								+ " acc_stamp=" + m.command.accept_stamp
+								+ " V[" + m.command.server + "]="
+								+ V.get(m.command.server)
+								+ " completeV=" + getCompleteV(m.command.serverId));
+					}
 					continue;
 				}
 
 				if (Env.DEBUG) {
-					System.out
-							.println("Server" + me
-									+ " get WriteNotification src=" + m.src
-									+ " acc_stamp=" + m.command.accept_stamp
-									+ " V[" + m.command.server + "]="
-									+ V.get(m.command.server));
+					System.out.println("Server" + me + " accept WriteNotification");
 				}
 				
 				V.put(m.command.server, m.command.accept_stamp);
@@ -180,11 +184,11 @@ public class Server extends Process {
 				
 				CreationWriteMessage m = (CreationWriteMessage) msg;
 				m.command.accept_stamp = (++TS);
-				V.put(m.src, TS);
+				V.put(m.command.server, TS);
 				tentative.add(m.command);
 				
 				this.connected_servers.add(m.src);
-				sendServerMessage(m.src, new CreationWriteResponse(me, TS, connected_servers));
+				sendServerMessage(m.src, new CreationWriteResponse(me, TS, connected_servers, this.V));
 				
 				antiEntropy();
 				
@@ -263,7 +267,7 @@ public class Server extends Process {
 				if ((cmd.server != R) && (VC == null || VC < cmd.accept_stamp)) {
 					if (Env.DEBUG) {
 						System.out.println(">>>antiEntropy tentative, from "
-								+ me + ", to " + R + "***** VC=" + VC
+								+ me + ", to " + R + " ----- VC=" + VC
 								+ ", acc_stp=" + cmd.accept_stamp);
 					}
 					sendServerMessage(R, new WriteNotification(me, cmd));
@@ -302,9 +306,11 @@ public class Server extends Process {
 		Message msg = getNextMessage();
 		if (msg instanceof CreationWriteResponse) {
 			CreationWriteResponse m = (CreationWriteResponse) msg;
-			this.TS = m.TS;
 			this.connected_servers.addAll(m.connected_servers);
-			this.serverId = new ServerId(env.servers.get(creator).serverId, TS, me);
+			this.serverId = new ServerId(env.servers.get(creator).serverId, m.TS, me);
+			cmd.serverId = this.serverId;
+			this.V.putAll(m.V);
+			this.TS = m.TS;
 		} else {
 			System.out.println("Server" + me
 					+ ": invalid CreationWriteResponse from server" + msg.src
@@ -349,13 +355,30 @@ public class Server extends Process {
 	}
 	
 	private int getCompleteV(ServerId serverId) {
+		if (Env.DEBUG) {
+			if (serverId != null) {
+				System.out.println("Server" + me + ": V[" + serverId.num + "]=" + V.get(serverId.num) + ", Tki=" + serverId.Tki);
+			}
+		}
 		if (serverId != null && V.containsKey(serverId.num)) {
+			if (Env.DEBUG) {
+				System.out.println("case 1");
+			}
 			return V.get(serverId.num);
 		} else if (serverId == null) {
+			if (Env.DEBUG) {
+				System.out.println("case 2");
+			}
 			return Integer.MAX_VALUE;
 		} else if (getCompleteV(serverId.Sk)>=serverId.Tki) {
+			if (Env.DEBUG) {
+				System.out.println("case 3");
+			}
 			return Integer.MAX_VALUE;
 		} else {
+			if (Env.DEBUG) {
+				System.out.println("case 4");
+			}
 			return Integer.MIN_VALUE;
 		}
 	}

@@ -56,8 +56,8 @@ class CreationWriteMessage extends Message {
 }
 
 class CreationWriteResponse extends Message {
-	int TS; Set<Integer> connected_servers;
-	public CreationWriteResponse(int src, int TS, Set<Integer> connected_servers){
-		this.src = src; this.TS = TS; this.connected_servers = connected_servers;
+	int TS; Set<Integer> connected_servers; Map<Integer, Integer> V;
+	public CreationWriteResponse(int src, int TS, Set<Integer> connected_servers, Map<Integer, Integer> V){
+		this.src = src; this.TS = TS; this.connected_servers = connected_servers; this.V = V;
 	}
 }
