@@ -56,7 +56,7 @@ public class Server extends Process {
 				System.out.println("server" + me + ": active=false, enter retirement.");
 				break;
 			}
-			
+						
 			while (Env.pause);
 			
 			if (Env.SLOW_MODE) {
@@ -136,7 +136,7 @@ public class Server extends Process {
 				
 				// if retirement request, respond
                 if (m.command.type.equals("retire")) {
-                        sendServerMessage(m.src, new RetireWriteResponse(me));
+                        sendServerMessage(m.command.server, new RetireWriteResponse(me));
                 }
                 
                 if (Env.DEBUG_RETIREMENT) {
@@ -221,7 +221,7 @@ public class Server extends Process {
 			}
 			
 			else {
-				System.err.println("Server" + me + ": unknown msg type" + msg.getClass());
+				System.err.println("Server" + me + ": unknown msg type - " + msg.getClass());
 			}
 		}
 		
@@ -339,14 +339,6 @@ public class Server extends Process {
 	public void retire() {
 		this.active = false;
 		retirementWrite();
-		
-		try {
-		    Thread.sleep(10);
-		} catch(InterruptedException ex) {
-		    Thread.currentThread().interrupt();
-		}
-		
-		env.removeServer(me);
 	}
 	
 	
@@ -372,6 +364,8 @@ public class Server extends Process {
 			V_commit.put(cmd.server, cmd.accept_stamp);
 			antiEntropy();
 		}
+		
+		env.removeServer(me);
 	}
 	
 	private int getCompleteV(ServerId serverId) {
