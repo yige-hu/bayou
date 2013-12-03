@@ -57,7 +57,20 @@ class CreationWriteMessage extends Message {
 
 class CreationWriteResponse extends Message {
 	ServerId creatorId; int TS; Set<Integer> connected_servers; Map<Integer, Integer> V;
-	public CreationWriteResponse(ServerId creatorId, int src, int TS, Set<Integer> connected_servers, Map<Integer, Integer> V){
+	public CreationWriteResponse(int src, ServerId creatorId, int TS, Set<Integer> connected_servers, Map<Integer, Integer> V){
 		this.creatorId = creatorId; this.src = src; this.TS = TS; this.connected_servers = connected_servers; this.V = V;
+	}
+}
+
+class StateRequestMessage extends Message {
+	public StateRequestMessage(int src) {
+		this.src = src;
+	}
+}
+
+class StateResponseMessage extends Message {
+	Map<Integer, Integer> V; Set<Command> committed; Set<Command> tentative;
+	public StateResponseMessage(int src, Map<Integer, Integer> V, Set<Command> committed, Set<Command> tentative) {
+		this.src = src; this.V = V; this.committed = committed; this.tentative = tentative;
 	}
 }

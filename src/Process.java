@@ -17,6 +17,10 @@ public abstract class Process extends Thread {
 	void sendClientMessage(int dst, Message msg){
 		env.sendClientMessage(dst, msg);
 	}
+	
+	void sendStateReqMessage(int dst, Message msg){
+		env.sendStateReqMessage(dst, msg);
+	}
 
 	void deliver(Message msg){
 		inbox.enqueue(msg);

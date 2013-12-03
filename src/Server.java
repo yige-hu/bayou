@@ -21,7 +21,8 @@ public class Server extends Process {
 	
 	ServerId serverId;
 	boolean active = true;
-
+	
+	ServerStateResponder resp;
 
 	public Server(Env env, int me) {
 		this.env = env;
@@ -31,13 +32,23 @@ public class Server extends Process {
 		
 		this.serverId = new ServerId(null, TS, me);
 		
-		env.addServer(me, this);
+		resp = new ServerStateResponder(env, me, this);
+		resp.start();
+		//env.addServer(me, this);
+		//env.addServerStateResponder(me, resp);
 	}
 	
 	public Server(Env env, int me, int creator) {
 		this.env = env;
 		this.me = me;
 		connected_servers.add(me);
+		
+		new ServerStateResponder(env, me, this);
+		try {
+		    Thread.sleep(10);
+		} catch(InterruptedException ex) {
+		    Thread.currentThread().interrupt();
+		}
 		
 		env.addServerCreation(me, this, creator);
 	}
@@ -188,7 +199,7 @@ public class Server extends Process {
 				tentative.add(m.command);
 				
 				this.connected_servers.add(m.src);
-				sendServerMessage(m.src, new CreationWriteResponse(serverId, me, TS, connected_servers, this.V));
+				sendServerMessage(m.src, new CreationWriteResponse(me, serverId, TS, connected_servers, this.V));
 				
 				antiEntropy();
 				
@@ -238,17 +249,33 @@ public class Server extends Process {
 		for (int R : connected_servers) {
 			if (R == me) continue;
 			
-			Server server = env.servers.get(R);
+			Map<Integer, Integer> R_V; Set<Command> R_committed; Set<Command> R_tentative;
+			
+			//Server server = env.servers.get(R);
+			sendStateReqMessage(R, new StateRequestMessage(me));
+			System.out.println("server" + me + ": wait for state resp...");
+			Message msg = getNextMessage();
+			if (msg instanceof StateResponseMessage) {
+				StateResponseMessage m = (StateResponseMessage) msg;
+				R_V = m.V;
+				R_committed = m.committed;
+				R_tentative = m.tentative;
+			} else {
+				System.out.println("Server" + me
+						+ ": invalid CreationWriteResponse from server" + msg.src
+						+ " msg type=" + msg.getClass());
+				return;
+			}
 			
 			// send committed writes that R does not know about
-			if (server.committed.size() < this.committed.size()) {
+			if (R_committed.size() < this.committed.size()) {
 				if (Env.DEBUG) {
 					System.out.println(">>>antiEntropy commit, from " + me
 							+ ", to " + R);
 				}
 				for (Command cmd : committed) {
-					if (!server.committed.contains(cmd)) {
-						if (server.tentative.contains(cmd)) {
+					if (!R_committed.contains(cmd)) {
+						if (R_tentative.contains(cmd)) {
 							sendServerMessage(R, new CommitNotification(me,
 									cmd));
 						} else {
@@ -263,7 +290,7 @@ public class Server extends Process {
 			
 			// send all the tentative writes
 			for (Command cmd : tentative) {
-				Integer VC = server.V.get(cmd.server);
+				Integer VC = R_V.get(cmd.server);
 				if ((cmd.server != R) && (VC == null || VC < cmd.accept_stamp)) {
 					if (Env.DEBUG) {
 						System.out.println(">>>antiEntropy tentative, from "

@@ -4,6 +4,7 @@ import java.util.*;
 public class Env {
 	Map<Integer, Server> servers = new HashMap<Integer, Server>();
 	Map<Integer, Client> clients = new HashMap<Integer, Client>();
+	Map<Integer, ServerStateResponder> server_state_reponders = new HashMap<Integer, ServerStateResponder>();
 	
 	public final static int nInitServers = 3;
 	
@@ -16,7 +17,7 @@ public class Env {
 	private static boolean TEST_1 = false;
 	
 
-	 void sendServerMessage(int dst, Message msg){
+	synchronized void sendServerMessage(int dst, Message msg){
 		Process p = servers.get(dst);
 		if (p != null) {
 			p.deliver(msg);
@@ -31,13 +32,14 @@ public class Env {
 			p.deliver(msg);
 		}
 	}
-
-	synchronized void addServer(int pid, Server proc){
-		servers.put(pid, proc);
-		proc.start();
+	
+	synchronized void sendStateReqMessage(int dst, Message msg){
+		Process p = server_state_reponders.get(dst);
+		if (p != null) {
+			p.deliver(msg);
+		}
 	}
 	
-
 	synchronized public void addServerCreation(int pid, Server proc, int creator) {
 		servers.put(pid, proc);
 		proc.creationWrite(creator);
@@ -50,12 +52,26 @@ public class Env {
 		
 		proc.start();
 	}
-
+	
+	synchronized void addServer(int pid, Server proc){
+		servers.put(pid, proc);
+		proc.start();
+	}
+	
 	synchronized void removeServer(int pid){
 		servers.remove(pid);
 	}
 	
-	public void addClient(int pid, Client proc) {
+	synchronized void addServerStateResponder(int pid, ServerStateResponder proc){
+		server_state_reponders.put(pid, proc);
+		proc.start();
+	}
+	
+	synchronized void removeServerStateResponder(int pid){
+		server_state_reponders.remove(pid);
+	}
+	
+	synchronized void addClient(int pid, Client proc) {
 		clients.put(pid, proc);
 		proc.start();
 	}
@@ -66,13 +82,26 @@ public class Env {
 
 	void run(String[] args){
 
+		ServerStateResponder resp = new ServerStateResponder(this, 0, null);
+		resp.start();
+		
 		// default 3 servers
-		Server s0 = new Server(this, 0);
-		join(1);
-		join(2);
+		//Server s0 = new Server(this, 0);
+		try {
+		    Thread.sleep(100);
+		} catch(InterruptedException ex) {
+		    Thread.currentThread().interrupt();
+		}
+		//join(1);
+		try {
+		    Thread.sleep(100);
+		} catch(InterruptedException ex) {
+		    Thread.currentThread().interrupt();
+		}
+		//join(2);
 		
 		// default 1 client, connected to Server0
-		Client c = new Client(this, this.clients.size());
+		//Client c = new Client(this, this.clients.size());
 		
 		CmdReader reader = new CmdReader(this);
 		reader.run();
