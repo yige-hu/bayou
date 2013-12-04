@@ -35,6 +35,12 @@ public class Command implements Comparable {
 		this.server = server;
 		this.serverId = serverId;
 	}
+	
+	public Command(String type, int server, int client) {
+		this.type = type;
+		this.server = server;
+		this.client = client;
+	}
 
 	public boolean equals(Object o) {
 		Command other = (Command) o;
@@ -43,8 +49,11 @@ public class Command implements Comparable {
 
 	public String toString(){
 		String s = "Command(";
-		if (type.equals("create") || type.equals("retire")) {
-			s += "'" + type + " server" + server + "', ServerId=" + serverId + ", accept_stamp="
+		if (type.equals("create")) {
+			s += "'create server" + client + "', ServerId=" + serverId + ", accept_stamp="
+					+ accept_stamp + " ,CSN=" + CSN + ")";
+		} else if (type.equals("retire")) {
+			s += "'retire server" + server + "', ServerId=" + serverId + ", accept_stamp="
 					+ accept_stamp + " ,CSN=" + CSN + ")";
 		} else {
 			s += "client=" + client + ", cmd_id=" + cmd_id + ", server="

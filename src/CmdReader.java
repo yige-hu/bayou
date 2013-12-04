@@ -58,6 +58,15 @@ public class CmdReader extends Thread {
 					}
 				}
 				
+				else if (type.equals("printV")) {
+					if (t.hasMoreTokens()) {
+						int server = Integer.parseInt(t.nextToken());
+						env.printV(server);
+					} else {
+						env.printV();
+					}
+				}
+				
 				else if (type.equals("isolate")) {
 					int server = Integer.parseInt(t.nextToken());
 					env.isolate(server);

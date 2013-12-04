@@ -184,14 +184,14 @@ public class Server extends Process {
 								+ " acc_stamp=" + m.command.accept_stamp
 								+ " V[" + m.command.server + "]="
 								+ V.get(m.command.server)
-								+ " completeV=" + getCompleteV(m.command.serverId));
+								+ " completeV=" + getCompleteV(m.command.serverId) + " cmd=" + m.command);
 					}
 					continue;
 				}
 
 				if (Env.DEBUG) {
 					System.out.println("Server" + me + " accept WriteNotification " +  " V[" + m.command.server + "]="
-							+ V.get(m.command.server) + " completeV=" + getCompleteV(m.command.serverId));
+							+ V.get(m.command.server) + " completeV=" + getCompleteV(m.command.serverId) + " cmd=" + m.command);
 				}
 				
 				V.put(m.command.server, m.command.accept_stamp);
@@ -220,7 +220,8 @@ public class Server extends Process {
 				CreationWriteMessage m = (CreationWriteMessage) msg;
 				m.command.accept_stamp = (++TS);
 				V.put(me, TS);
-				V.put(m.command.server, TS);
+				V.put(m.src, 0);
+				m.command.serverId = this.serverId;
 				tentative.add(m.command);
 				
 				this.connected_servers.add(m.src);
@@ -269,6 +270,7 @@ public class Server extends Process {
 		try {
 			if (command.type.equals("create")) {
 				this.connected_servers.add(command.server);
+				this.V.put(command.client, 0);
 			} else if (command.type.equals("retire")) {
 				this.connected_servers.remove(command.server);
 				this.V.remove(command.server);
@@ -360,16 +362,22 @@ public class Server extends Process {
 		System.out.println("PlayList: server" + me + ", ServerId=" + serverId);
 		playList.print();
 	}
+	
+	public void printV() {
+		System.out.println("PlayList: server" + me + ", ServerId=" + serverId + ", TS=" + TS);
+		for (int s : V.keySet()) {
+			System.out.println("\tV[" + s + "]=" + V.get(s));
+		}
+	}
 
 	public void creationWrite(int creator) {
-		Command cmd = new Command("create", me, serverId);
+		Command cmd = new Command("create", creator, me);
 		sendServerMessage(creator, new CreationWriteMessage(me, cmd));
 		Message msg = getNextMessage();
 		if (msg instanceof CreationWriteResponse) {
 			CreationWriteResponse m = (CreationWriteResponse) msg;
 			this.connected_servers.addAll(m.connected_servers);
 			this.serverId = new ServerId(m.creatorId, m.TS, me);
-			cmd.serverId = this.serverId;
 			this.V.putAll(m.V);
 			this.TS = m.TS;
 			
