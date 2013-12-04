@@ -190,7 +190,8 @@ public class Server extends Process {
 				}
 
 				if (Env.DEBUG) {
-					System.out.println("Server" + me + " accept WriteNotification");
+					System.out.println("Server" + me + " accept WriteNotification " +  " V[" + m.command.server + "]="
+							+ V.get(m.command.server) + " completeV=" + getCompleteV(m.command.serverId));
 				}
 				
 				V.put(m.command.server, m.command.accept_stamp);
@@ -218,6 +219,7 @@ public class Server extends Process {
 				
 				CreationWriteMessage m = (CreationWriteMessage) msg;
 				m.command.accept_stamp = (++TS);
+				V.put(me, TS);
 				V.put(m.command.server, TS);
 				tentative.add(m.command);
 				

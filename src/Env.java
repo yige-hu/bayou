@@ -9,7 +9,7 @@ public class Env {
 	
 	public static boolean pause = false;
 	
-	public static final boolean DEBUG = false;
+	public static final boolean DEBUG = true;
 	public static final boolean DEBUG_RETIREMENT = false;
 	public static final boolean SLOW_MODE = false;
 	
@@ -44,6 +44,7 @@ public class Env {
 	}
 
 	synchronized void removeServer(int pid){
+		System.out.println("server" + pid + " removed.");
 		servers.remove(pid);
 	}
 	
