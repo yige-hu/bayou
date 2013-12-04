@@ -137,6 +137,10 @@ public class Env {
 	public void join(int server) {
 		Server s = new Server(this, server, 0);
 	}
+	
+	public void join(int server, int creator) {
+		Server s = new Server(this, server, creator);
+	}
 
 	public void leave(int server) {
 		Server s = servers.get(server);

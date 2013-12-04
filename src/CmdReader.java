@@ -83,7 +83,12 @@ public class CmdReader extends Thread {
 				// server management
 				else if (type.equals("join")) {
 					int server = Integer.parseInt(t.nextToken());
-					env.join(server);
+					if (t.hasMoreTokens()) {
+						int creator = Integer.parseInt(t.nextToken());
+						env.join(server, creator);
+					} else {
+						env.join(server);
+					}
 				}
 				
 				else if (type.equals("leave")) {
