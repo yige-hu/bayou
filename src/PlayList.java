@@ -33,5 +33,11 @@ public class PlayList {
 		}
 		return s.toString();
 	}
+	
+	public void print() {
+		for (Song s : songs.values()) {
+			System.out.println("\t" + s);
+		}
+	}
 
 }

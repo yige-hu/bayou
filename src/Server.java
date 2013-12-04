@@ -294,6 +294,8 @@ public class Server extends Process {
 			
 			Server server = env.servers.get(R);
 			
+			if (server == null) continue;
+			
 			// send committed writes that R does not know about
 			if (server.committed.size() < this.committed.size()) {
 				if (Env.DEBUG) {
@@ -352,6 +354,11 @@ public class Server extends Process {
 		for (Command cmd : tentative) {
 			System.out.println("\t" + cmd);
 		}
+	}
+	
+	public void printList() {
+		System.out.println("PlayList: server" + me + ", ServerId=" + serverId);
+		playList.print();
 	}
 
 	public void creationWrite(int creator) {

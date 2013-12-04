@@ -9,7 +9,7 @@ public class Env {
 	
 	public static boolean pause = false;
 	
-	public static final boolean DEBUG = true;
+	public static final boolean DEBUG = false;
 	public static final boolean DEBUG_RETIREMENT = false;
 	public static final boolean SLOW_MODE = false;
 	
@@ -121,6 +121,17 @@ public class Env {
 	public void printLog(int server) {
 		Server s = servers.get(server);
 		s.printLog();
+	}
+	
+	public void printList() {
+		for (Server s : servers.values()) {
+			s.printList();
+		}
+	}
+
+	public void printList(int server) {
+		Server s = servers.get(server);
+		s.printList();
 	}
 
 	public void join(int server) {
